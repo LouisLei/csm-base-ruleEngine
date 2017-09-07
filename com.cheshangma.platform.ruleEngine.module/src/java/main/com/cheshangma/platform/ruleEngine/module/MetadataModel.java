@@ -10,7 +10,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  * 具有元数据属性的业务模型类。该类被policy和rule所使用
  * @author yinwenjie
  */
-public class MetadataModel implements MorpheusModel {
+public class MetadataModel implements RuleEngineModel {
 	
 	/**
 	 * 元数据中，可以带有若干个输出信息，每个信息都是一个VariableProperty对象

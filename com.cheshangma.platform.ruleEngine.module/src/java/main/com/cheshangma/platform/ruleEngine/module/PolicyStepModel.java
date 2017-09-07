@@ -9,7 +9,7 @@ import com.cheshangma.platform.ruleEngine.enums.ExecModeType;
  * 
  * @author yinwenjie
  */
-public class PolicyStepModel implements Serializable, MorpheusModel {
+public class PolicyStepModel implements Serializable, RuleEngineModel {
   /**
    * 
    */
