@@ -10,7 +10,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
  * 例如id、description等信息
  * @author yinwenjie
  */
-public abstract class UUIDModel implements Serializable, MorpheusModel {
+public abstract class UUIDModel implements Serializable, RuleEngineModel {
     /**
 	 * 
 	 */

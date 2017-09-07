@@ -152,6 +152,11 @@
 			<artifactId>core</artifactId>
 			<version>0.0.9-SNAPSHOT</version>
 		</dependency> 
+		<dependency>
+			<groupId>com.cheshangma.platform.ruleEngine</groupId>
+			<artifactId>httpmodule</artifactId>
+			<version>0.0.9-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 	<build>
