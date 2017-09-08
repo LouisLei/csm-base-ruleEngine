@@ -16,7 +16,7 @@ public abstract class ScriptReversableAbstractFactory {
 	/**
 	 * 该方法在Morpheus core executor执行模块需要根据java完整类名或者类的唯一编号初始化对象，并完成动态脚本“反调时”，被激活。<br>
 	 * @param component 在动态脚本中指定的需要调用的java的类名或者spring工程中设置的component的名字
-	 * @return
+	 * @return 
 	 */
 	public abstract ScriptInvokerReversable buildReversableBean(String component);
 }
