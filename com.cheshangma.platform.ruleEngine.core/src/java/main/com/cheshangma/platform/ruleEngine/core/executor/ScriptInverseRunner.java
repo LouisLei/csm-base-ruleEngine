@@ -85,26 +85,61 @@ public class ScriptInverseRunner {
       throw new IllegalArgumentException("component can not be found!!");
     }
     String methodName = componentAndMethod.substring(lastIndex + 1);
-    Method invokerMethod = null;
-    try {
-      // TODO 这里还差上下文对象类型
-      invokerMethod = invokerReversable.getClass().getDeclaredMethod(methodName , new Class<?>[]{});
-    } catch(NoSuchMethodException e) {
-      
-    }
-    
-    //3、===============调用
-    // TODO 试图取空方法的信息
+    Method invokerMethod = this.findMethod(invokerReversable.getClass(), methodName);
     if(invokerMethod == null) {
       return null;
     }
+    
+    //3、===============调用
     Object result = null;
     try {
-      result = invokerMethod.invoke(invokerReversable, new Object[]{});
+      if(invokerMethod.getParameterCount() == 1) {
+        result = invokerMethod.invoke(invokerReversable, new Object[]{});
+      } else {
+        result = invokerMethod.invoke(invokerReversable, new Object[]{});
+      }
     } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
       LOG.error(e.getMessage() , e);
       return null;
     }
     return result;
+  }
+  
+  /**
+   * 该私有方法用于找到要被反调的方法，如果没找到就在其父类实现找（不是父级接口找哦）。<br>
+   * 直到找到方法或者没有更高级别的父类了
+   * @param targetClass
+   * @param methodName
+   * @return
+   */
+  private Method findMethod(Class<?> targetClass , String methodName) {
+    Method[] methods = targetClass.getDeclaredMethods();
+    
+    // 开始在本级class中找
+    for (int index = 0 ; methods != null && index < methods.length ; index++) {
+      Method method = methods[index];
+      // 如果条件成立，说明找到了名字吻合的方法名（但是不一定能被调用）
+      if(StringUtils.equals(method.getName(), methodName)) {
+        int parameterCount = method.getParameterCount();
+        if(parameterCount > 1) {
+          continue;
+        }
+        
+        // 如果条件成立，说明真的找到了
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        if(parameterTypes == null || parameterTypes.length == 0
+            || parameterTypes[0] == ExecuteContext.class) {
+          return method;
+        } 
+      }
+    }
+    
+    // 如果代码运行到这里，说明在这个class中没有找到需要的method方法。
+    // 那么到它的父级类中找
+    Class<?> superCLass = targetClass.getSuperclass();
+    if(superCLass != null) {
+      return this.findMethod(superCLass, methodName);
+    }
+    return null;
   }
 }

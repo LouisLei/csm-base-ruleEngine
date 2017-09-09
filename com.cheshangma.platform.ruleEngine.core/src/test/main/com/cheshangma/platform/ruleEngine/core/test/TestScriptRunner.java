@@ -22,14 +22,14 @@ public class TestScriptRunner {
   public void simple() throws ExecutionException,InterruptedException {
     // 初始化线程池
     ScriptThreadPoolExecutor poolExecutor = new ScriptThreadPoolExecutor(10, 20, 1000l, TimeUnit.MILLISECONDS,
-      new LinkedBlockingQueue<>(), new ScriptThreadFactory());
+      new LinkedBlockingQueue<>(), new ScriptThreadFactory("threadName"));
     // 这里是代码
     String groovyExpression = "def a = 10;def b = 12;c += a + b;";
     
     // ==================== 输入变量，第一次执行
     Map<String, Object> variables = new HashMap<>();
     variables.put("c", 1);
-    Future<Object> future = poolExecutor.submit(new ScriptCaller(groovyExpression, variables));
+    Future<ScriptCaller.Result> future = poolExecutor.submit(new ScriptCaller(groovyExpression, variables));
     Object result = future.get();
     System.out.println("result = " + result);
     

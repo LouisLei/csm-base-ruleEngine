@@ -1,5 +1,6 @@
 package com.cheshangma.platform.ruleEngine.core.executor;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -16,6 +17,7 @@ import javax.script.ScriptException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cheshangma.platform.ruleEngine.enums.ResultModeType;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
@@ -23,7 +25,7 @@ import com.google.common.cache.CacheBuilder;
  * 这是专门用于进行脚本代码执行的运行器。
  * @author yinwenjie
  */
-public class ScriptCaller implements Callable<Object> {
+public class ScriptCaller implements Callable<ScriptCaller.Result> {
   
   /**
    * 需要执行的groovy脚本在这里
@@ -66,12 +68,13 @@ public class ScriptCaller implements Callable<Object> {
   }
   
   @Override
-  public Object call() {
+  public Result call() {
     /*
      * 执行过程为：
      * 1、首先确定当前执行的内容是否需要支持反调。如果需要支持反调则需要重新组合groovy脚本
      * 2、然后从缓存中寻找内容是否被编译保存，如果是则直接取出执行；如果不是就进行编译
      * 3、开始执行（执行最简的方式，以便进行测试）
+     * 4、开始构造返回信息，返回信息不只包括脚本的正式返回值，还包括了bings中的信息（而且主要还是后者）
      * */
     // TODO 1、还没有写
     
@@ -99,11 +102,23 @@ public class ScriptCaller implements Callable<Object> {
     }
     
     // 3、=============开始执行
-    Object result = null;
+    Result result = new Result();
+    Object returnResult = null;
     try {
-      result = compiledScript.eval(binding);
+      returnResult = compiledScript.eval(binding);
+      result.resultMode = ResultModeType.PASS;
+      result.score = new HashMap<>();
+      result.score.put("_return", returnResult);
     } catch (ScriptException e) {
       LOG.error(e.getMessage() , e);
+      result.rejectMessage = e.getMessage();
+      result.resultMode = ResultModeType.EXCEPTION;
+      return result;
+    }
+    
+    // 4、============构造返回
+    if(binding != null && !binding.isEmpty()) {
+      result.score.putAll(binding);
     }
     return result;
   }
@@ -129,6 +144,44 @@ public class ScriptCaller implements Callable<Object> {
       CompiledScript compiledScript = compilable.compile(this.groovyExpression);
       
       return compiledScript;
+    }
+  }
+  
+  /**
+   * 记录脚本执行结果，注意这些信息并不是
+   * @author yinwenjie
+   */
+  public static class Result {
+    /**
+     * 规则执行结果，默认的结果是，执行没有通过
+     */
+    private ResultModeType resultMode = ResultModeType.REJECT;
+    /**
+     * 最重要的执行结果，Groovy、Python或者JavaScript的执行结果会在这里得到体现。入参的变化也会在这里得到体现。<br>
+     * 这么说吧，动态脚本中的全局变量和它们在脚本执行完成后（或者异常退出后）的赋值都会在这里得到体现
+     */
+    private Map<String, Object> score;
+    /**
+     * 被拒绝后，或者执行失败后显示的信息
+     */
+    private String rejectMessage = "";
+    public ResultModeType getResultMode() {
+      return resultMode;
+    }
+    public void setResultMode(ResultModeType resultMode) {
+      this.resultMode = resultMode;
+    }
+    public Map<String, Object> getScore() {
+      return score;
+    }
+    public void setScore(Map<String, Object> score) {
+      this.score = score;
+    }
+    public String getRejectMessage() {
+      return rejectMessage;
+    }
+    public void setRejectMessage(String rejectMessage) {
+      this.rejectMessage = rejectMessage;
     }
   }
 }

@@ -1,25 +1,32 @@
 package com.cheshangma.platform.ruleEngine.core.framework;
 
-import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.cheshangma.platform.ruleEngine.core.exception.ThreadStatusException;
+import com.cheshangma.platform.ruleEngine.core.executor.ExecuteContext;
+import com.cheshangma.platform.ruleEngine.core.executor.ScriptThread;
+import com.cheshangma.platform.ruleEngine.core.service.PolicyService;
+import com.cheshangma.platform.ruleEngine.core.service.RuleService;
 import com.cheshangma.platform.ruleEngine.core.service.ServiceAbstractFactory;
 import com.cheshangma.platform.ruleEngine.module.ExecutionPolicyModel;
 import com.cheshangma.platform.ruleEngine.module.ExecutionRuleModel;
-import com.cheshangma.platform.ruleEngine.module.PolicyModel;
-import com.cheshangma.platform.ruleEngine.module.RuleModel;
 
 /**
+ * TODO 还没有注释
  * @author yinwenjie
  */
 public interface RuleEngineFramework {
   
   /**
-   * @param rule
-   * @param inputs
-   * @return
+   * 该方法负责执行一个指定的规则
+   * @param rule 指定的规则信息，注意这个规则在实现方法内部是需要被验证的
+   * @param inputs 当前执行规则的输入参数
+   * @return 执行结果将在这里返回，就算执行异常也会有返回
    */
-  public ExecutionRuleModel executeRule(RuleModel rule, Map<String, Object> inputs);
+  public ExecutionRuleModel executeRule(String ruleId, Map<String, Object> inputs);
   
   /**
    * @param policy
@@ -27,12 +34,54 @@ public interface RuleEngineFramework {
    * @param inputs
    * @return
    */
-  public ExecutionPolicyModel executePolicy(PolicyModel policy, List<RuleModel> ruleSteps,Map<String, Object> inputs);
+  public ExecutionPolicyModel executePolicy(String policyId, Map<String, Object> inputs);
+  
+  /**
+   * @return
+   */
+  public PolicyService getPolicyService();
+  
+  /**
+   * @return
+   */
+  public RuleService getRuleService();
+  
+  /**
+   * 通过这个方法，可以获得当前正在执行规则任务的ScriptThread线程中的规则上下文<br>
+   * 该方法实际上默认就是直接调用RuleEngineFramework.currentContext()方法
+   * @return 
+   */
+  public ExecuteContext getCurrentContext();
+  
+  /**
+   * 使用静态方法，获取当前脚本执行线程中的上下文，更方便啦
+   * @see #getCurrentContext()
+   * @return
+   */
+  public static ExecuteContext currentContext() {
+    Thread currentThread = Thread.currentThread();
+    if(!(currentThread instanceof ScriptThread)) {
+      throw new ThreadStatusException();
+    }
+    
+    ScriptThread scriptThread = (ScriptThread)currentThread;
+    return scriptThread.getExecuteContext();
+  }
   
   public static class Builder {
 
     private static final Builder BUILDER = new Builder();
-
+    
+    /**
+     * 日志
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(Builder.class);
+    
+    /**
+     * 唯一的一个规则引擎框架对象。无论builder初始化多少次，也是这个对象
+     */
+    private static RuleEngineFramework ruleEngineFramework;
+    
     /**
      * 获取整个系统中唯一一个规则引擎构造实例
      * 
@@ -72,12 +121,26 @@ public interface RuleEngineFramework {
      * 是否允许反调
      */
     private boolean allowInverse = false;
-
+    
+    /**
+     * 规则引擎框架是否已完成初始化
+     */
+    private static boolean isBuilded = false;
+    
     /**
      * 
      * @return
      */
     public RuleEngineFramework buildIfAbent() {
+      synchronized (RuleEngineFramework.class) {
+        while(!Builder.isBuilded) {
+          try {
+            RuleEngineFramework.class.wait();
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        }
+      }
       // TODO 继续写
       return null;
     }
