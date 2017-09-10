@@ -1,6 +1,5 @@
 package com.cheshangma.platform.ruleEngine.httpclient;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cheshangma.platform.ruleEngine.core.framework.RuleEngineFramework;
 import com.cheshangma.platform.ruleEngine.core.service.ServiceAbstractFactory;
+import com.cheshangma.platform.ruleEngine.core.utils.JSONMapper;
 import com.cheshangma.platform.ruleEngine.enums.ScriptLanguageType;
 import com.cheshangma.platform.ruleEngine.httpclient.iface.ExecuteRemote;
 import com.cheshangma.platform.ruleEngine.httpclient.iface.PolicyRemote;
@@ -30,10 +30,6 @@ import com.cheshangma.platform.ruleEngine.module.PolicyModel;
 import com.cheshangma.platform.ruleEngine.module.PolicyStepModel;
 import com.cheshangma.platform.ruleEngine.module.RuleEngineModel;
 import com.cheshangma.platform.ruleEngine.module.RuleModel;
-
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 import feign.Feign;
 import feign.Request.Options;
@@ -222,9 +218,7 @@ public class RuleEngineClient {
 	 */
 	public List<PolicyModel> queryAllPolicy() {
 	  ExecuteHttpResponse response = this.policyRemote.retrieve();
-		return this.responseTransfer(response, new TypeReference<List<PolicyModel>>() {
-			
-		});
+		return this.responseTransfers(response, PolicyModel.class);
 	}
 	
 	/**
@@ -330,9 +324,7 @@ public class RuleEngineClient {
 	 */
 	public List<RuleModel> queryAllRules() {
 	  ExecuteHttpResponse response = this.ruleRemote.retrieveAllRule();
-		return this.responseTransfer(response , new TypeReference<List<RuleModel>>() {
-			
-		});
+		return this.responseTransfers(response , RuleModel.class);
 	}
 	
 	/**
@@ -342,9 +334,7 @@ public class RuleEngineClient {
 	public List<RuleModel> queryRuleByPolicy(String policyId) {
 		this.checkPolicyId(policyId);
 		ExecuteHttpResponse response = this.ruleRemote.retrieveRuleStep(policyId);
-		return this.responseTransfer(response , new TypeReference<List<RuleModel>>() {
-			
-		});
+		return this.responseTransfers(response , RuleModel.class);
 	}
 	
 	/**
@@ -488,9 +478,7 @@ public class RuleEngineClient {
 			// 根据ruleids查询所有的rule信息
 			List<String> ruleids = policySteps.stream().map(PolicyStepModel::getRuleId).collect(Collectors.toList());
 			ExecuteHttpResponse response = this.ruleRemote.retrieveRuleStep(policyid);
-			List<RuleModel> rules = this.responseTransfer(response, new TypeReference<List<RuleModel>>() {
-				
-			});
+			List<RuleModel> rules = this.responseTransfers(response, RuleModel.class);
 			 
 			/*
 			 * 注意由于数据库中使用in关键字进行查询，所以查询出来的结果顺序和policySteps要求的结果顺序可能不一致。
@@ -671,23 +659,16 @@ public class RuleEngineClient {
 	 * @param modelType
 	 * @return
 	 */
-	private <T extends RuleEngineModel> T responseTransfer(ExecuteHttpResponse response , Class<T> modelType) {
-//		// 如果条件成立，说明处理失败了
-//		if(!StringUtils.equals(response.getStatus(), "200")) {
-//			LOG.error(response.getMessage() , response.getException());
-//			throw new RuntimeException(response.getMessage());
-//		}
-//		// 数据信息都是JSON结构
-//		try {
-//			String responseJson =  JSONMapper.OBJECTMAPPER.writeValueAsString(response.getData());
-//			return JSONMapper.OBJECTMAPPER.readValue(responseJson, modelType);
-//		} catch (IOException e) {
-//			LOG.error(e.getMessage() , e);
-//			throw new RuntimeException(e.getMessage() , e);
-//		}
-	  // TODO 还不可用
-	  return null;
-	}
+  private <T extends RuleEngineModel> T responseTransfer(ExecuteHttpResponse response, Class<T> modelType) {
+    // 如果条件成立，说明处理失败了
+    if (!StringUtils.equals(response.getStatus(), "200")) {
+      LOG.error(response.getMessage(), response.getException());
+      throw new RuntimeException(response.getMessage());
+    }
+    // 数据信息都是JSON结构
+    String responseJson = JSONMapper.OBJECTMAPPER.convertObjectToJson(response.getData());
+    return JSONMapper.OBJECTMAPPER.parseJsonToObject(responseJson, modelType);
+  }
 	
 	/**
 	 * 该方法将response中的返回信息按照类型要求构造成一个MorpheusModel业务模型信息<br>
@@ -696,24 +677,17 @@ public class RuleEngineClient {
 	 * @param modelType
 	 * @return
 	 */
-	private  <T extends List<M> ,  M extends RuleEngineModel> T responseTransfer(ExecuteHttpResponse response , TypeReference<T> modelType) {
-//		// 如果条件成立，说明处理失败了
-//		if(!StringUtils.equals(response.getStatus(), "200")) {
-//			LOG.error(response.getMessage() , response.getException());
-//			throw new RuntimeException(response.getMessage());
-//		}
-//		
-//		// 数据信息都是JSON结构
-//		try {
-//			String responseJson =  JSONMapper.OBJECTMAPPER.writeValueAsString(response.getData());
-//			return JSONMapper.OBJECTMAPPER.readValue(responseJson, modelType);
-//		} catch (IOException e) {
-//			LOG.error(e.getMessage() , e);
-//			throw new RuntimeException(e.getMessage() , e);
-//		}
-	  // TODO 还不可用
-	  return null;
-	}
+  private <T extends RuleEngineModel> List<T> responseTransfers(ExecuteHttpResponse response, Class<T> type) {
+    // 如果条件成立，说明处理失败了
+    if (!StringUtils.equals(response.getStatus(), "200")) {
+      LOG.error(response.getMessage(), response.getException());
+      throw new RuntimeException(response.getMessage());
+    }
+
+    // 数据信息都是JSON结构
+    String responseJson = JSONMapper.OBJECTMAPPER.convertObjectToJson(response.getData());
+    return JSONMapper.OBJECTMAPPER.parseJsonToList(responseJson, type);
+  }
 	
 	/**
 	 * MorpheusClient采用创建者模式进行进程中唯一对象的创建
@@ -722,7 +696,8 @@ public class RuleEngineClient {
   public static class Builder {
     /**
      * 远程HTTP API的主调用地址<br>
-     * 如果没有指定，就是http://localhost TODO 目前支持单节点，以后在做负载均衡的支持——不依靠Spring Cloud
+     * 如果没有指定，就是http://localhost 
+     * TODO 目前支持单节点，以后在做负载均衡的支持——不依靠Spring Cloud
      */
     private String remoteURL = "http://localhost";
 

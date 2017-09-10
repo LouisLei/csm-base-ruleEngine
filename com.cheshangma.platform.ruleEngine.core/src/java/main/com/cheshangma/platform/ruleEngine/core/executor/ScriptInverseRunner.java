@@ -26,6 +26,9 @@ public class ScriptInverseRunner {
      ScriptInverseRunner.scriptReversableFactory = scriptReversableFactory;
   }
 
+  /**
+   * @return
+   */
   public static ScriptInverseRunner getNewInstance() {
     if (ScriptInverseRunner.scriptInverseRunner != null) {
       return ScriptInverseRunner.scriptInverseRunner;
@@ -33,6 +36,9 @@ public class ScriptInverseRunner {
 
     synchronized (ScriptInverseRunner.class) {
       while (ScriptInverseRunner.scriptInverseRunner == null) {
+        if(ScriptInverseRunner.scriptInverseRunner != null) {
+          break; 
+        }
         ScriptInverseRunner.scriptInverseRunner = new ScriptInverseRunner();
         return ScriptInverseRunner.scriptInverseRunner;
       }
@@ -41,10 +47,9 @@ public class ScriptInverseRunner {
   }
   
   /**
-   * 
+   * 不能直接进行初始化
    */
   private ScriptInverseRunner() {
-    // TODO 代码还未做
   }
 
   /**
