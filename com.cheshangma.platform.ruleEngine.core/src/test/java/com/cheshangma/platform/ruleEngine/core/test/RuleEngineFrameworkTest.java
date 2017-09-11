@@ -36,36 +36,47 @@ public class RuleEngineFrameworkTest {
    */
   @Before
   public void before() {
-    /*
-     * 这里测试两个线程同时创建时的状态
-     * */
-    Thread thread1 = new Thread(() -> {
-      RuleEngineFramework.Builder build = RuleEngineFramework.Builder.getInstanceBuilder();
-      this.ruleEngineFramework = build.setAllowInverse(false)
-      .setMaxExecutionThread(20)
-      .setMinExecutionThread(5)
-      .setScriptQueueSize(50)
-      .setScriptThreadName("test-script-thread")
-      // 初始化一个服务工厂
-      .setServiceAbstractFactory(new ServiceDefaultFactory())
-      .setWaitingTimeout(500l)
-      .buildIfAbent();
-    });
-    thread1.start();
+//    /*
+//     * 这里测试两个线程同时创建时的状态
+//     * */
+//    Thread thread1 = new Thread(() -> {
+//      RuleEngineFramework.Builder build = RuleEngineFramework.Builder.getInstanceBuilder();
+//      this.ruleEngineFramework = build.setAllowInverse(false)
+//      .setMaxExecutionThread(20)
+//      .setMinExecutionThread(5)
+//      .setScriptQueueSize(50)
+//      .setScriptThreadName("test-script-thread")
+//      // 初始化一个服务工厂
+//      .setServiceAbstractFactory(new ServiceDefaultFactory())
+//      .setWaitingTimeout(500l)
+//      .buildIfAbent();
+//    });
+//    thread1.start();
+//    
+//    Thread thread2 = new Thread(() -> {
+//      RuleEngineFramework.Builder build = RuleEngineFramework.Builder.getInstanceBuilder();
+//      this.ruleEngineFramework = build.setAllowInverse(false)
+//      .setMaxExecutionThread(20)
+//      .setMinExecutionThread(5)
+//      .setScriptQueueSize(50)
+//      .setScriptThreadName("test-script-thread")
+//      // 初始化一个服务工厂
+//      .setServiceAbstractFactory(new ServiceDefaultFactory())
+//      .setWaitingTimeout(500l)
+//      .buildIfAbent();
+//    });
+//    thread2.start();
     
-    Thread thread2 = new Thread(() -> {
-      RuleEngineFramework.Builder build = RuleEngineFramework.Builder.getInstanceBuilder();
-      this.ruleEngineFramework = build.setAllowInverse(false)
-      .setMaxExecutionThread(20)
-      .setMinExecutionThread(5)
-      .setScriptQueueSize(50)
-      .setScriptThreadName("test-script-thread")
-      // 初始化一个服务工厂
-      .setServiceAbstractFactory(new ServiceDefaultFactory())
-      .setWaitingTimeout(500l)
-      .buildIfAbent();
-    });
-    thread2.start();
+    RuleEngineFramework.Builder build = RuleEngineFramework.Builder.getInstanceBuilder();
+    this.ruleEngineFramework = build.setAllowInverse(false)
+    .setMaxExecutionThread(20)
+    .setMinExecutionThread(5)
+    .setScriptQueueSize(50)
+    .setScriptThreadName("test-script-thread")
+    // 初始化一个服务工厂
+    .setServiceAbstractFactory(new ServiceDefaultFactory())
+    .setWaitingTimeout(500l)
+    .buildIfAbent();
     
     System.out.println("ruleEngineFramework inited!!");
   }
