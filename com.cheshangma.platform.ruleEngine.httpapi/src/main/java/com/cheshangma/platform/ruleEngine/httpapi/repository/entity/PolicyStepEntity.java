@@ -1,9 +1,11 @@
 package com.cheshangma.platform.ruleEngine.httpapi.repository.entity;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 /**
  * 执行步骤，专门用于描述policy中各个子级规则的执行顺序<br>
@@ -11,6 +13,8 @@ import javax.persistence.ManyToOne;
  * 
  * @author yinwenjie
  */
+@Entity 
+@Table(name = "R_POLICY_STEP")
 public class PolicyStepEntity extends UUIDEntity {
   /**
    * 
@@ -35,7 +39,7 @@ public class PolicyStepEntity extends UUIDEntity {
   /**
    * 执行步骤（该值越小执行步骤越靠前）
    */
-  @Column(name = "index", nullable = false)
+  @Column(name = "index_", nullable = false)
   private Long index;
 
   /**
