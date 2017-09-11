@@ -1,4 +1,4 @@
-package com.cheshangma.platform.ruleEngine.utils;
+package com.cheshangma.platform.ruleEngine.core.utils;
 
 /**
  * The MurmurHash3 algorithm was created by Austin Appleby and placed in the
