@@ -1,6 +1,7 @@
 package com.cheshangma.platform.ruleEngine.core.framework;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -77,7 +78,8 @@ class SimpleRuleEngineFramework implements RuleEngineFramework {
     Validate.notBlank(expression , "rule expression must not be empty!!");
     ExecutionRuleModel executionResult = new ExecutionRuleModel();
     executionResult.setCreated(new Date());
-    executionResult.setCreator("");
+    executionResult.setCreator(rule.getCreator());
+    executionResult.setDescription(rule.getDescription());
     
     //2、========= 构造输入（如果不是基础类型就需要做深度复制）
     // 因为在进入脚本执行后，这些对象的属性可能就会改变了
@@ -109,6 +111,8 @@ class SimpleRuleEngineFramework implements RuleEngineFramework {
     Validate.notNull(policy , "not found policy !!");
     ExecutionPolicyModel executionResult = new ExecutionPolicyModel();
     executionResult.setCreated(new Date());
+    executionResult.setCreator(policy.getCreator());
+    executionResult.setDescription(policy.getDescription());
     
     // 2、==============
     Map<String, Object> copyInputs = DeepCopyUtils.deepCopy(inputs);
@@ -140,15 +144,23 @@ class SimpleRuleEngineFramework implements RuleEngineFramework {
       MetadataModel metadata = policy.getMetadata();
       // 确定元数据
       if(metadata != null) {
-        Set<VariableProperty> vars = metadata.getParams();
-        if(vars != null && !vars.isEmpty()) {
-          for (VariableProperty variable : vars) {
+        Set<VariableProperty> targetVars = metadata.getParams();
+        MetadataModel existMetadata = new MetadataModel();
+        Set<VariableProperty> existVars = new HashSet<VariableProperty>();
+        existMetadata.setParams(existVars);
+        
+        // 只有有值才能记录到结果中
+        if(targetVars != null && !targetVars.isEmpty()) {
+          for (VariableProperty variable : targetVars) {
              String variableName = variable.getName();
              Object value = score.get(variableName);
-             variable.setValue(value);
+             if(value != null) {
+               variable.setValue(value);
+               existVars.add(variable);
+             }
           }
         }
-        executionResult.setMetadata(metadata);
+        executionResult.setMetadata(existMetadata);
       }
     } catch (InterruptedException | ExecutionException e) {
       LOG.error(e.getMessage() , e);
