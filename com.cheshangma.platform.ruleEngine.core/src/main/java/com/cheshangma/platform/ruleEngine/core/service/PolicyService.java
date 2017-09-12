@@ -74,11 +74,4 @@ public interface PolicyService {
    * @return 如果操作成功则返回true，其它情况返回false
    */
   public boolean disable(String policyId);
-  
-  /**
-   * 解除指定的策略下所有的绑定信息
-   * @param policyId 绑定的策略业务编号 
-   * @return 如果操作成功，则返回true；其它情况返回false
-   */
-  public boolean unbind(String policyId);
 }

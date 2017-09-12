@@ -46,14 +46,15 @@ public class RuleController extends BasicController {
       + "创建过程只包括对Rule的基本信息进行创建，并不包括同时对Rule和Policy进行绑定")
   @RequestMapping(value = "", method = RequestMethod.POST)
   public ExecuteHttpResponse createRule(@RequestBody RuleEntity rule) {
-    RuleEntity ruleEntity = ruleService.addUpdateRule(rule);
-    ExecuteHttpResponse result = new ExecuteHttpResponse();
-    if (ruleEntity == null) {
-      result.setMessage("创建失败！");
-    }else {
-      result.setData(ruleEntity);
-    }
-    return result;
+//    RuleEntity ruleEntity = ruleService.addUpdateRule(rule);
+//    ExecuteHttpResponse result = new ExecuteHttpResponse();
+//    if (ruleEntity == null) {
+//      result.setMessage("创建失败！");
+//    }else {
+//      result.setData(ruleEntity);
+//    }
+//    return result;
+    return null;
   }
 
   /**
@@ -75,14 +76,17 @@ public class RuleController extends BasicController {
       + "其它信息，即使传入也不会发生变更。而添加或者修改一个rule的基本判定原则，就是传入的rule对象中，RuleId是否已经存在了。")
   @RequestMapping(value = "", method = RequestMethod.PATCH)
   public ExecuteHttpResponse upsertRule(@RequestBody RuleEntity rule) {
-    RuleEntity ruleEntity = ruleService.addUpdateRule(rule);
-    ExecuteHttpResponse result = new ExecuteHttpResponse();
-    if (ruleEntity == null) {
-      result.setMessage("修改失败！");
-    }else {
-      result.setData(ruleEntity);
-    }
-    return result;
+//    RuleEntity ruleEntity = ruleService.addUpdateRule(rule);
+//    
+//    
+//    ExecuteHttpResponse result = new ExecuteHttpResponse();
+//    if (ruleEntity == null) {
+//      result.setMessage("修改失败！");
+//    }else {
+//      result.setData(ruleEntity);
+//    }
+//    return result;
+    return null;
   }
 
   /**
@@ -134,13 +138,16 @@ public class RuleController extends BasicController {
       + "当然并不是说要同时删除这些policy，而只是rule和policy的关联关系")
   @RequestMapping(value = "/{ruleId}", method = RequestMethod.DELETE)
   public ExecuteHttpResponse delete(@PathVariable("ruleId") String ruleId) {
-    RuleEntity rule = ruleService.delRule(ruleId);
     ExecuteHttpResponse result = new ExecuteHttpResponse();
-    if (rule == null) {
-      result.setMessage("删除失败！");
-    }else {
+    try {
+      ruleService.deleteByRuleId(ruleId);
       result.setStatus("删除成功！");
-      result.setData(rule);
+      result.setData(true);
+      result.setStatus("200");
+    } catch (Exception e) {
+      result.setMessage("删除失败！");
+      result.setStatus("500");
+      result.setException(e.getMessage());
     }
     return result;
   }
