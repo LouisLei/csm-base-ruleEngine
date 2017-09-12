@@ -24,7 +24,7 @@ public class PolicyEntity extends UUIDEntity {
   /**
    * 对应的策略id（注意是业务id号）
    */
-  @Column(name = "policyId", length = 64, nullable = false)
+  @Column(name = "policyId", length = 64, nullable = false, unique = true)
   private String policyId;
   /**
    * 元数据信息

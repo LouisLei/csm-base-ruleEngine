@@ -3,6 +3,8 @@ package com.cheshangma.platform.ruleEngine.httpapi.controller;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +52,7 @@ public class RuleController extends BasicController {
     ExecuteHttpResponse result = new ExecuteHttpResponse();
     if (ruleEntity == null) {
       result.setMessage("创建失败！");
-    }else {
+    } else {
       result.setData(ruleEntity);
     }
     return result;
@@ -79,10 +81,23 @@ public class RuleController extends BasicController {
     ExecuteHttpResponse result = new ExecuteHttpResponse();
     if (ruleEntity == null) {
       result.setMessage("修改失败！");
-    }else {
+    } else {
       result.setData(ruleEntity);
     }
     return result;
+  }
+
+  /**
+   * 查询所有的规则信息<br>
+   * 用于列表显示、刷新等.
+   * 
+   * @return List<RuleEntity>
+   */
+  @ApiOperation(value = "该方法用于查询当前系统中所有的规则信息")
+  @RequestMapping(path = {"/findAllRule"}, method = {RequestMethod.GET})
+  public List<RuleEntity> findAllRule() {
+    List<RuleEntity> rules = this.ruleService.findAllRule();
+    return rules;
   }
 
   /**
@@ -138,7 +153,7 @@ public class RuleController extends BasicController {
     ExecuteHttpResponse result = new ExecuteHttpResponse();
     if (rule == null) {
       result.setMessage("删除失败！");
-    }else {
+    } else {
       result.setStatus("删除成功！");
       result.setData(rule);
     }

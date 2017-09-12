@@ -13,4 +13,11 @@ import com.cheshangma.platform.ruleEngine.httpapi.repository.entity.PolicyEntity
  */
 public interface PolicyRepository extends CrudRepository<PolicyEntity, String> {
 
+  /**
+   * 根据策略id查询（非逻辑键）.
+   * 
+   * @param policyId 策略id
+   * @return PolicyEntity
+   */
+  public PolicyEntity findByPolicyId(String policyId);
 }
