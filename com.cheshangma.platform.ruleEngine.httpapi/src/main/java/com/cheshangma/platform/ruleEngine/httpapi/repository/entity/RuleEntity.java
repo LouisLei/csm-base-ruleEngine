@@ -1,12 +1,14 @@
 package com.cheshangma.platform.ruleEngine.httpapi.repository.entity;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import com.cheshangma.platform.ruleEngine.enums.ExecModeType;
 import com.cheshangma.platform.ruleEngine.enums.ScriptLanguageType;
 
 /**
@@ -35,13 +37,6 @@ public class RuleEntity extends UUIDEntity {
   private ScriptLanguageType scriptLanguage = ScriptLanguageType.LANGUAGE_GROOVY;
   
   /**
-   * 策略的运行模式<br>
-   * 简单说，就是当遇到异常时，是否终止运行
-   */
-  @Column(name = "execMode", nullable = false)
-  private ExecModeType execMode = ExecModeType.SIMPLE;
-  
-  /**
    * 描述信息
    */
   @Column(name="description" , length=1024 , nullable=false)
@@ -56,6 +51,13 @@ public class RuleEntity extends UUIDEntity {
    */
   @Column(name="created" , nullable=false)
   private Date created = new Date();
+  
+  /**
+   * 可能对应的多个步骤
+   */
+  @OneToMany(fetch=FetchType.LAZY ,mappedBy ="ruleId")
+  private List<PolicyStepEntity> steps;
+  
   public String getRuleId() {
     return ruleId;
   }
@@ -92,10 +94,10 @@ public class RuleEntity extends UUIDEntity {
   public void setCreated(Date created) {
     this.created = created;
   }
-  public ExecModeType getExecMode() {
-    return execMode;
+  public List<PolicyStepEntity> getSteps() {
+    return steps;
   }
-  public void setExecMode(ExecModeType execMode) {
-    this.execMode = execMode;
+  public void setSteps(List<PolicyStepEntity> steps) {
+    this.steps = steps;
   }
 }

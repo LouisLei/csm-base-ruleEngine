@@ -3,8 +3,6 @@ package com.cheshangma.platform.ruleEngine.httpapi.controller;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,14 +46,15 @@ public class RuleController extends BasicController {
       + "创建过程只包括对Rule的基本信息进行创建，并不包括同时对Rule和Policy进行绑定")
   @RequestMapping(value = "", method = RequestMethod.POST)
   public ExecuteHttpResponse createRule(@RequestBody RuleEntity rule) {
-    RuleEntity ruleEntity = ruleService.addUpdateRule(rule);
-    ExecuteHttpResponse result = new ExecuteHttpResponse();
-    if (ruleEntity == null) {
-      result.setMessage("创建失败！");
-    } else {
-      result.setData(ruleEntity);
-    }
-    return result;
+//    RuleEntity ruleEntity = ruleService.addUpdateRule(rule);
+//    ExecuteHttpResponse result = new ExecuteHttpResponse();
+//    if (ruleEntity == null) {
+//      result.setMessage("创建失败！");
+//    }else {
+//      result.setData(ruleEntity);
+//    }
+//    return result;
+    return null;
   }
 
   /**
@@ -77,27 +76,17 @@ public class RuleController extends BasicController {
       + "其它信息，即使传入也不会发生变更。而添加或者修改一个rule的基本判定原则，就是传入的rule对象中，RuleId是否已经存在了。")
   @RequestMapping(value = "", method = RequestMethod.PATCH)
   public ExecuteHttpResponse upsertRule(@RequestBody RuleEntity rule) {
-    RuleEntity ruleEntity = ruleService.addUpdateRule(rule);
-    ExecuteHttpResponse result = new ExecuteHttpResponse();
-    if (ruleEntity == null) {
-      result.setMessage("修改失败！");
-    } else {
-      result.setData(ruleEntity);
-    }
-    return result;
-  }
-
-  /**
-   * 查询所有的规则信息<br>
-   * 用于列表显示、刷新等.
-   * 
-   * @return List<RuleEntity>
-   */
-  @ApiOperation(value = "该方法用于查询当前系统中所有的规则信息")
-  @RequestMapping(path = {"/findAllRule"}, method = {RequestMethod.GET})
-  public List<RuleEntity> findAllRule() {
-    List<RuleEntity> rules = this.ruleService.findAllRule();
-    return rules;
+//    RuleEntity ruleEntity = ruleService.addUpdateRule(rule);
+//    
+//    
+//    ExecuteHttpResponse result = new ExecuteHttpResponse();
+//    if (ruleEntity == null) {
+//      result.setMessage("修改失败！");
+//    }else {
+//      result.setData(ruleEntity);
+//    }
+//    return result;
+    return null;
   }
 
   /**
@@ -149,13 +138,16 @@ public class RuleController extends BasicController {
       + "当然并不是说要同时删除这些policy，而只是rule和policy的关联关系")
   @RequestMapping(value = "/{ruleId}", method = RequestMethod.DELETE)
   public ExecuteHttpResponse delete(@PathVariable("ruleId") String ruleId) {
-    RuleEntity rule = ruleService.delRule(ruleId);
     ExecuteHttpResponse result = new ExecuteHttpResponse();
-    if (rule == null) {
-      result.setMessage("删除失败！");
-    } else {
+    try {
+      ruleService.deleteByRuleId(ruleId);
       result.setStatus("删除成功！");
-      result.setData(rule);
+      result.setData(true);
+      result.setStatus("200");
+    } catch (Exception e) {
+      result.setMessage("删除失败！");
+      result.setStatus("500");
+      result.setException(e.getMessage());
     }
     return result;
   }

@@ -2,12 +2,14 @@ package com.cheshangma.platform.ruleEngine.httpapi.controller;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cheshangma.platform.ruleEngine.core.framework.RuleEngineFramework;
 import com.cheshangma.platform.ruleEngine.httpmodule.ExecuteHttpResponse;
 import com.cheshangma.platform.ruleEngine.httpmodule.ExecutePolicyRequest;
 import com.cheshangma.platform.ruleEngine.httpmodule.ExecuteScriptRequest;
@@ -24,6 +26,10 @@ import io.swagger.annotations.ApiOperation;
 @RestController
 @RequestMapping("/v2/execute")
 public class ExecuteController extends BasicController{
+  
+  @Autowired
+  private RuleEngineFramework ruleEngineFramework;
+  
 	/**
 	 * 该方法用于执行一个rule下设定的动态脚本信息，通过传入的inputs入参信息<br>
 	 * 这种方式您必须保证ruleId对应的规则信息，已经在Morpheus的数据持久层进行了保存，并且是能够在持久层被查询到的
@@ -33,6 +39,7 @@ public class ExecuteController extends BasicController{
 			+ "这种方式您必须保证ruleId对应的规则信息，已经在Morpheus的数据持久层进行了保存，并且是能够在持久层被查询到的")
 	@RequestMapping(value = "/rule/{ruleId}", method = RequestMethod.POST)
 	public ExecuteHttpResponse executeRule(@PathVariable("ruleId") String ruleId , @RequestBody Map<String, Object> inputs) {
+	  
 		return null;
 	}
 	

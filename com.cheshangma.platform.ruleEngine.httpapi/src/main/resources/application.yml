@@ -3,7 +3,7 @@ server:
 #jpa
 spring:
   application:
-    name: com.cheshangma.ruleengine
+    name: platform.ruleengine
   jpa: 
     show-sql: true
     generate-ddl: false
@@ -22,11 +22,16 @@ spring:
     expose-request-attributes: true
     expose-session-attributes: true
     suffix: .ftl
-  #swagger
+# swagger
 swagger:
   version: v0.0.9
 # 通过zuul代理的url路径目录要写在这里
 zuulUrlName: ruleengine
+# ruleengine
+ruleengine: 
+  maxExecutionThread: 20
+  minExecutionThread: 5
+  scriptQueueSize: 50
 
 ---
 ########################## test

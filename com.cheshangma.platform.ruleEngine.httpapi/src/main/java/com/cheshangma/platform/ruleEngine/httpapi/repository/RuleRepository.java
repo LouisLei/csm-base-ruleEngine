@@ -1,5 +1,8 @@
 package com.cheshangma.platform.ruleEngine.httpapi.repository;
 
+import java.util.List;
+
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import com.cheshangma.platform.ruleEngine.httpapi.repository.entity.RuleEntity;
@@ -20,4 +23,12 @@ public interface RuleRepository extends CrudRepository<RuleEntity, String> {
    * @return RuleEntity
    */
   public RuleEntity findByRuleId(String ruleId);
+  
+  /**
+   * 根据策略业务编号，查询已绑定的rule信息
+   * @param policyId
+   * @return
+   */
+  @Query(value="from RuleEntity r ")
+  public List<RuleEntity> findByPolicyId(String policyId);
 }
