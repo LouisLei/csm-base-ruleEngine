@@ -1,6 +1,9 @@
 package com.cheshangma.platform.ruleEngine.httpapi.repository;
 
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import com.cheshangma.platform.ruleEngine.httpapi.repository.entity.VariablePropertyEntity;
 
@@ -12,5 +15,11 @@ import com.cheshangma.platform.ruleEngine.httpapi.repository.entity.VariableProp
  * @version V1.0
  */
 public interface VariablePropertyRepository extends CrudRepository<VariablePropertyEntity, String> {
-
+  /**
+   * 根据策略的业务id，删除指定的policy下的所有元数据信息
+   * @param policyId 
+   */
+  @Modifying
+  @Query(value="delete from VariablePropertyEntity where policyId = :policyId" , nativeQuery=true)
+  public void deleteByPolicyId(@Param("policyId") String policyId);
 }
