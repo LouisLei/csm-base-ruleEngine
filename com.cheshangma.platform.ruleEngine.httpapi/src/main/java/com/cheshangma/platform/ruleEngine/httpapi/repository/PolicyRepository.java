@@ -28,7 +28,7 @@ public interface PolicyRepository extends CrudRepository<PolicyEntity, String> {
    * @param policyId
    */
   @Modifying
-  @Query(value="update R_POLICY set policyEnabled = 1 where policyId = :policyId")
+  @Query(value="update PolicyEntity set policyEnabled = 1 where policyId = :policyId")
   public void enable(@Param("policyId") String policyId);
   
   /**
@@ -36,6 +36,6 @@ public interface PolicyRepository extends CrudRepository<PolicyEntity, String> {
    * @param policyId
    */
   @Modifying
-  @Query(value="update R_POLICY set policyEnabled = 0 where policyId = :policyId")
+  @Query(value="update PolicyEntity set policyEnabled = 0 where policyId = :policyId")
   public void disable(@Param("policyId") String policyId);
 }
