@@ -29,14 +29,14 @@ public class TestScriptRunner {
     // ==================== 输入变量，第一次执行
     Map<String, Object> variables = new HashMap<>();
     variables.put("c", 1);
-    Future<ScriptCaller.Result> future = poolExecutor.submit(new ScriptCaller(groovyExpression, variables));
+    Future<ScriptCaller.Result> future = poolExecutor.submit(new ScriptCaller(groovyExpression, variables, true));
     Object result = future.get();
     System.out.println("result = " + result);
     
     // ================== 再次执行，主要看缓存工作没有
     variables = new HashMap<>();
     variables.put("c", result);
-    future = poolExecutor.submit(new ScriptCaller(groovyExpression, variables));
+    future = poolExecutor.submit(new ScriptCaller(groovyExpression, variables , true));
     result = future.get();
     System.out.println("result = " + result);
   }

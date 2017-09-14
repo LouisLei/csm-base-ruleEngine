@@ -7,6 +7,9 @@ import java.util.concurrent.TimeUnit;
 
 import com.cheshangma.platform.ruleEngine.core.exception.ThreadStatusException;
 import com.cheshangma.platform.ruleEngine.core.executor.ExecuteContext;
+import com.cheshangma.platform.ruleEngine.core.executor.ScriptInverseRunner;
+import com.cheshangma.platform.ruleEngine.core.executor.ScriptReversableAbstractFactory;
+import com.cheshangma.platform.ruleEngine.core.executor.ScriptReversableDefaultFactory;
 import com.cheshangma.platform.ruleEngine.core.executor.ScriptThread;
 import com.cheshangma.platform.ruleEngine.core.service.PolicyService;
 import com.cheshangma.platform.ruleEngine.core.service.RuleService;
@@ -17,7 +20,7 @@ import com.cheshangma.platform.ruleEngine.module.PolicyModel;
 import com.cheshangma.platform.ruleEngine.module.RuleModel;
 
 /**
- * TODO 还没有注释
+ * 提供给外部调用者的规则引擎框架服务
  * @author yinwenjie
  */
 public interface RuleEngineFramework {
@@ -106,6 +109,11 @@ public interface RuleEngineFramework {
      */
     private ServiceAbstractFactory serviceAbstractFactory;
     /**
+     * 反调执行的脚本服务工厂<br>
+     * 默认为ScriptReversableDefaultFactory
+     */
+    private ScriptReversableAbstractFactory scriptReversableFactory = new ScriptReversableDefaultFactory();
+    /**
      * 是否允许反调
      */
     private boolean allowInverse = false;
@@ -144,76 +152,70 @@ public interface RuleEngineFramework {
             return Builder.ruleEngineFramework; 
           }
           
-          // 开始创建
+          // 开始创建（包括反调执行器和规则引擎框架的实例）
+          ScriptInverseRunner.initReversableFactory(this.scriptReversableFactory);
           Builder.ruleEngineFramework = new SimpleRuleEngineFramework(minExecutionThread, 
             maxExecutionThread, waitingTimeout, TimeUnit.MILLISECONDS, 
-            new ArrayBlockingQueue<>(scriptQueueSize), scriptThreadName);
+            new ArrayBlockingQueue<>(scriptQueueSize), scriptThreadName , this.allowInverse);
           Builder.isBuilded = true;
         }
       }
       return Builder.ruleEngineFramework;
     }
-
     public Integer getMaxExecutionThread() {
       return maxExecutionThread;
     }
-
     public Builder setMaxExecutionThread(Integer maxExecutionThread) {
       this.maxExecutionThread = maxExecutionThread;
       return this;
     }
-
     public Integer getMinExecutionThread() {
       return minExecutionThread;
     }
-
     public Builder setMinExecutionThread(Integer minExecutionThread) {
       this.minExecutionThread = minExecutionThread;
       return this;
     }
-
     public Integer getScriptQueueSize() {
       return scriptQueueSize;
     }
-
     public Builder setScriptQueueSize(Integer scriptQueueSize) {
       this.scriptQueueSize = scriptQueueSize;
       return this;
     }
-
     public ServiceAbstractFactory getServiceAbstractFactory() {
       return serviceAbstractFactory;
     }
-
     public Builder setServiceAbstractFactory(ServiceAbstractFactory serviceAbstractFactory) {
       this.serviceAbstractFactory = serviceAbstractFactory;
       return this;
     }
-
     public boolean isAllowInverse() {
       return allowInverse;
     }
-
     public Builder setAllowInverse(boolean allowInverse) {
       this.allowInverse = allowInverse;
       return this;
     }
-
     public String getScriptThreadName() {
       return scriptThreadName;
     }
-
     public Builder setScriptThreadName(String scriptThreadName) {
       this.scriptThreadName = scriptThreadName;
       return this;
     }
-
     public Long getWaitingTimeout() {
       return waitingTimeout;
     }
-
     public Builder setWaitingTimeout(Long waitingTimeout) {
       this.waitingTimeout = waitingTimeout;
+      return this;
+    }
+    public ScriptReversableAbstractFactory getScriptReversableFactory() {
+      return scriptReversableFactory;
+    }
+    public Builder setScriptReversableFactory(ScriptReversableAbstractFactory scriptReversableFactory) {
+      this.scriptReversableFactory = scriptReversableFactory;
       return this;
     }
   }

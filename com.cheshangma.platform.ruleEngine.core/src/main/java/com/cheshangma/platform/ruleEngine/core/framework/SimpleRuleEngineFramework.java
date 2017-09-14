@@ -1,6 +1,7 @@
 package com.cheshangma.platform.ruleEngine.core.framework;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -38,16 +39,18 @@ import com.cheshangma.platform.ruleEngine.module.RuleModel;
  * @author yinwenjie
  */
 class SimpleRuleEngineFramework implements RuleEngineFramework {
-
   /**
    * 执行规则任务所使用的线程池
    */
   private ScriptThreadPoolExecutor scriptThreadPoolExecutor;
-  
   /**
    * 规则引擎服务层实现，最关键的就是为了实现持久化层的操作
    */
   private ServiceAbstractFactory serviceAbstractFactory;
+  /**
+   * 本框架执行是否允许反调
+   */
+  private boolean allowInverse = false;
   
   /**
    * 日志
@@ -56,7 +59,8 @@ class SimpleRuleEngineFramework implements RuleEngineFramework {
 
   // 全系统就只有一个这样的线程池
   SimpleRuleEngineFramework(int corePoolSize, int maximumPoolSize, long keepAliveTime,
-      TimeUnit unit, BlockingQueue<Runnable> workQueue , String scriptThreadName) {
+      TimeUnit unit, BlockingQueue<Runnable> workQueue , String scriptThreadName , boolean allowInverse) {
+    this.allowInverse = allowInverse;
     this.scriptThreadPoolExecutor = new ScriptThreadPoolExecutor(corePoolSize, maximumPoolSize, 
       keepAliveTime, unit, workQueue, new ScriptThreadFactory(scriptThreadName));
     
@@ -67,6 +71,9 @@ class SimpleRuleEngineFramework implements RuleEngineFramework {
    */
   @Override
   public ExecutionRuleModel executeRule(RuleModel rule, Map<String, Object> inputs) {
+    if(inputs == null || inputs.isEmpty()) {
+      inputs = new HashMap<>();
+    }
     /*
      * 1、首先验证rule对象描述的执行方式
      * 2、构造输入（注意，输入值必须必须深度复制）
@@ -107,6 +114,9 @@ class SimpleRuleEngineFramework implements RuleEngineFramework {
    */
   @Override
   public ExecutionPolicyModel executePolicy(PolicyModel policy, List<RuleModel>  rules, Map<String, Object> inputs) {
+    if(inputs == null || inputs.isEmpty()) {
+      inputs = new HashMap<>();
+    }
     // 1、==============
     Validate.notNull(policy , "not found policy !!");
     ExecutionPolicyModel executionResult = new ExecutionPolicyModel();
@@ -180,7 +190,7 @@ class SimpleRuleEngineFramework implements RuleEngineFramework {
    * @return
    */
   private Future<Result> executeSript(String expression, Map<String, Object> inputs) {
-    ScriptCaller scriptCaller = new ScriptCaller(expression, inputs);
+    ScriptCaller scriptCaller = new ScriptCaller(expression, inputs , this.allowInverse);
     Future<Result> future = this.scriptThreadPoolExecutor.submit(scriptCaller);
     return future;
   }
