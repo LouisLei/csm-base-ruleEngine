@@ -3,6 +3,11 @@ package com.cheshangma.platform.ruleEngine.httpapi.controller;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.cheshangma.platform.ruleEngine.httpapi.repository.entity.RuleEntity;
 import com.cheshangma.platform.ruleEngine.httpapi.service.RuleService;
 import com.cheshangma.platform.ruleEngine.httpmodule.ExecuteHttpResponse;
+import com.cheshangma.platform.ruleEngine.module.RuleModel;
 
 /**
  * 和rule基本管理有关的操作都在这里（但是不包括执行rule的相关操作）
@@ -45,16 +50,20 @@ public class RuleController extends BasicController {
       + "创建规则请参见com.dianrong.morpheus.core.model.RuleModel对象的属性描述。"
       + "创建过程只包括对Rule的基本信息进行创建，并不包括同时对Rule和Policy进行绑定")
   @RequestMapping(value = "", method = RequestMethod.POST)
-  public ExecuteHttpResponse createRule(@RequestBody RuleEntity rule) {
-//    RuleEntity ruleEntity = ruleService.addUpdateRule(rule);
-//    ExecuteHttpResponse result = new ExecuteHttpResponse();
-//    if (ruleEntity == null) {
-//      result.setMessage("创建失败！");
-//    }else {
-//      result.setData(ruleEntity);
-//    }
-//    return result;
-    return null;
+  public ExecuteHttpResponse createRule(@RequestBody RuleModel rule) {
+    ExecuteHttpResponse result = new ExecuteHttpResponse();
+    Validate.notNull(rule, "规则信息不能为空！");
+    try {
+      ruleService.save(rule);
+      result.setStatus("200");
+      result.setData(true);
+      result.setMessage("创建成功！");
+    } catch (Exception e) {
+      result.setStatus("500");
+      result.setMessage("创建失败！");
+      result.setMessage(e.getMessage());
+    }
+    return result;
   }
 
   /**
@@ -75,18 +84,20 @@ public class RuleController extends BasicController {
       + "meta、expression、scriptLanguage、creator和description信息"
       + "其它信息，即使传入也不会发生变更。而添加或者修改一个rule的基本判定原则，就是传入的rule对象中，RuleId是否已经存在了。")
   @RequestMapping(value = "", method = RequestMethod.PATCH)
-  public ExecuteHttpResponse upsertRule(@RequestBody RuleEntity rule) {
-//    RuleEntity ruleEntity = ruleService.addUpdateRule(rule);
-//    
-//    
-//    ExecuteHttpResponse result = new ExecuteHttpResponse();
-//    if (ruleEntity == null) {
-//      result.setMessage("修改失败！");
-//    }else {
-//      result.setData(ruleEntity);
-//    }
-//    return result;
-    return null;
+  public ExecuteHttpResponse upsertRule(@RequestBody RuleModel rule) {
+    ExecuteHttpResponse result = new ExecuteHttpResponse();
+    Validate.notNull(rule, "规则信息不能为空！");
+    try {
+      ruleService.update(rule);
+      result.setStatus("200");
+      result.setData(true);
+      result.setMessage("修改成功！");
+    } catch (Exception e) {
+      result.setStatus("500");
+      result.setMessage("修改失败！");
+      result.setException(e.getMessage());
+    }
+    return result;
   }
 
   /**
@@ -104,7 +115,24 @@ public class RuleController extends BasicController {
   @RequestMapping(value = "/bind/{policyId}/{ruleIds}", method = RequestMethod.POST)
   public ExecuteHttpResponse bind(@PathVariable("policyId") String policyId,
       @PathVariable("ruleIds") String[] ruleIds) {
-    return null;
+    ExecuteHttpResponse result = new ExecuteHttpResponse();
+    Validate.notBlank(policyId, "策略的业务id不能为空！");
+    Validate.isTrue((ruleIds != null && ruleIds.length > 0), "规则的业务id不能为空且至少存在一个规则业务id值！");
+    List<String> rids = new ArrayList<String>();
+    for (String rid : ruleIds) {
+      rids.add(rid);
+    }
+    boolean flag = ruleService.bindRule(policyId, rids);
+    if (flag) {
+      result.setStatus("200");
+      result.setData(true);
+      result.setMessage("绑定成功！");
+    }else {
+      result.setStatus("500");
+      result.setData(false);
+      result.setMessage("绑定失败！");
+    }
+    return result;
   }
 
   /**
@@ -122,7 +150,23 @@ public class RuleController extends BasicController {
   @RequestMapping(value = "/unbind/{policyId}/{ruleIds}", method = RequestMethod.POST)
   public ExecuteHttpResponse unbind(@PathVariable("policyId") String policyId,
       @PathVariable("ruleIds") String[] ruleIds) {
-    return null;
+    ExecuteHttpResponse result = new ExecuteHttpResponse();
+    Validate.notBlank(policyId, "策略的逻辑键id不能为空！");
+    Validate.isTrue((ruleIds != null && ruleIds.length > 0), "规则逻辑键id不能为空且至少存在一个规则逻辑键值！");
+      for (String rid : ruleIds) {
+        boolean flag = ruleService.unbind(policyId, rid);
+        if (flag) {
+          result.setStatus("200");
+          result.setData(true);
+          result.setMessage("解绑成功！");
+        }else {
+          result.setStatus("500");
+          result.setData(false);
+          result.setMessage("policyId="+policyId+"-ruleId="+rid+"解绑失败！");
+          break;
+        }
+      }
+    return result;
   }
 
   /**
@@ -139,9 +183,10 @@ public class RuleController extends BasicController {
   @RequestMapping(value = "/{ruleId}", method = RequestMethod.DELETE)
   public ExecuteHttpResponse delete(@PathVariable("ruleId") String ruleId) {
     ExecuteHttpResponse result = new ExecuteHttpResponse();
+    Validate.notBlank(ruleId, "规则业务id不能为空！");
     try {
       ruleService.deleteByRuleId(ruleId);
-      result.setStatus("删除成功！");
+      result.setMessage("删除成功！");
       result.setData(true);
       result.setStatus("200");
     } catch (Exception e) {
@@ -160,7 +205,15 @@ public class RuleController extends BasicController {
   @ApiOperation("查询当前系统中可用的所有rule信息。这些信息将按照被创建的时间倒序排列" + "。注意，目前还没有分谢方法，后续该系统真正被使用了，在进行增加")
   @RequestMapping(value = "/retrieve/", method = {RequestMethod.GET, RequestMethod.POST})
   public ExecuteHttpResponse retrieveAllRule() {
-    return null;
+    ExecuteHttpResponse result = new ExecuteHttpResponse();
+    List<RuleModel> list = ruleService.findAll();
+    if (list != null && list.size() > 0) {
+      result.setData(list);
+    }else {
+      result.setData(Collections.emptyList());
+    }
+    result.setStatus("200");
+    return result;
   }
 
   /**
@@ -173,7 +226,16 @@ public class RuleController extends BasicController {
   @ApiOperation("这些rule信息将依据绑定的policyId被查询出来，并且按照执行顺序依次排列。" + "如果当前policy没有绑定任何编号信息，则返回一个空集合")
   @RequestMapping(value = "/retrieve/{policyId}", method = RequestMethod.GET)
   public ExecuteHttpResponse retrieveRuleStep(@PathVariable("policyId") String policyId) {
-    return null;
+    ExecuteHttpResponse result = new ExecuteHttpResponse();
+    Validate.notBlank(policyId, "策略业务id不能为空！");
+    List<RuleModel> list = ruleService.findByPolicyId(policyId);
+    if (list != null && list.size() > 0) {
+      result.setData(list);
+    }else {
+      result.setData(Collections.emptyList());
+    }
+    result.setStatus("200");
+    return result;
   }
 
   /**
@@ -184,6 +246,15 @@ public class RuleController extends BasicController {
   @ApiOperation("该方法用于查询一个指定的Rule信息，返回的结果中，包括了这个rule的所有基本信息")
   @RequestMapping(value = "/retrieveOne/{ruleId}", method = RequestMethod.GET)
   public ExecuteHttpResponse retrieveOne(@PathVariable("ruleId") String ruleId) {
-    return null;
+    ExecuteHttpResponse result = new ExecuteHttpResponse();
+    Validate.notBlank(ruleId, "规则的业务id不能为空！");
+    RuleModel ruleModel = ruleService.findByRuleId(ruleId);
+    if (ruleModel != null) {
+      result.setData(ruleModel);
+    }else {
+      result.setData(null);
+    }
+    result.setStatus("200");
+    return result;
   }
 }

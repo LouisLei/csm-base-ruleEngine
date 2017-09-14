@@ -1,7 +1,12 @@
 package com.cheshangma.platform.ruleEngine.httpapi.controller;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
+import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,9 +18,9 @@ import com.cheshangma.platform.ruleEngine.core.framework.RuleEngineFramework;
 import com.cheshangma.platform.ruleEngine.httpmodule.ExecuteHttpResponse;
 import com.cheshangma.platform.ruleEngine.httpmodule.ExecutePolicyRequest;
 import com.cheshangma.platform.ruleEngine.httpmodule.ExecuteScriptRequest;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import com.cheshangma.platform.ruleEngine.module.PolicyModel;
+import com.cheshangma.platform.ruleEngine.module.PolicyStepModel;
+import com.cheshangma.platform.ruleEngine.module.RuleModel;
 
 /**
  * 和执行policy或者rule的设定有关的Http API都通过这个controller提供支持
@@ -39,8 +44,17 @@ public class ExecuteController extends BasicController{
 			+ "这种方式您必须保证ruleId对应的规则信息，已经在Morpheus的数据持久层进行了保存，并且是能够在持久层被查询到的")
 	@RequestMapping(value = "/rule/{ruleId}", method = RequestMethod.POST)
 	public ExecuteHttpResponse executeRule(@PathVariable("ruleId") String ruleId , @RequestBody Map<String, Object> inputs) {
-	  
-		return null;
+	  ExecuteHttpResponse result = new ExecuteHttpResponse();
+	  Validate.notBlank(ruleId, "规则业务id不能为空！");
+	  RuleModel rule = ruleEngineFramework.getRuleService().findByRuleId(ruleId);
+	  try {
+	    ruleEngineFramework.executeRule(rule, inputs);
+	    result.setStatus("200");
+      } catch (Exception e) {
+        result.setStatus("500");
+        result.setException(e.getMessage());
+      }
+		return result;
 	}
 	
 	/**
@@ -69,7 +83,14 @@ public class ExecuteController extends BasicController{
 			+ "但是如果这个policy既没有自己的脚本代码，也没有绑定任何rule，那么调用该方法将会出现异常。")
 	@RequestMapping(value = "/policy/{policyId}", method = RequestMethod.POST)
 	public ExecuteHttpResponse executePolicy(@PathVariable("policyId") String policyId , @RequestBody Map<String, Object> inputs) {
-		return null;
+	  ExecuteHttpResponse result = new ExecuteHttpResponse();
+      Validate.notBlank(policyId, "策略业务id不能为空！");
+      PolicyModel policy = ruleEngineFramework.getPolicyService().findByPolicyId(policyId);
+      List<PolicyStepModel> policySteps = policy.getExecution();
+      // TODO 规则从哪里获取
+      List<RuleModel> rules = null;
+      ruleEngineFramework.executePolicy(policy, rules, inputs);
+	  return null;
 	}
 	
 	/**
