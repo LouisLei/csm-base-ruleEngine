@@ -99,7 +99,9 @@ public class ScriptInverseRunner {
     Object result = null;
     try {
       if(invokerMethod.getParameterCount() == 1) {
-        result = invokerMethod.invoke(invokerReversable, new Object[]{});
+        ScriptThread scriptThread = (ScriptThread)Thread.currentThread();
+        ExecuteContext context = scriptThread.getExecuteContext();
+        result = invokerMethod.invoke(invokerReversable, new Object[]{context});
       } else {
         result = invokerMethod.invoke(invokerReversable, new Object[]{});
       }

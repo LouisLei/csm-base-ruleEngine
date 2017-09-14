@@ -38,6 +38,11 @@ public class ScriptCaller implements Callable<ScriptCaller.Result> {
   private Map<String, Object> variables;
   
   /**
+   * 本次执行是否允许反调
+   */
+  private boolean allowInverse = false;
+  
+  /**
    * 这里是一个本地缓存，基于google的一个本地缓存实现。
    */
   private static Cache<Object,Object> CACHE = null;
@@ -62,9 +67,10 @@ public class ScriptCaller implements Callable<ScriptCaller.Result> {
         .build();
   }
   
-  public ScriptCaller(String groovyExpression , Map<String, Object> variables) {
+  public ScriptCaller(String groovyExpression , Map<String, Object> variables , boolean allowInverse) {
     this.groovyExpression = groovyExpression;
     this.variables = variables;
+    this.allowInverse = allowInverse;
   }
   
   @Override
@@ -76,7 +82,12 @@ public class ScriptCaller implements Callable<ScriptCaller.Result> {
      * 3、开始执行（执行最简的方式，以便进行测试）
      * 4、开始构造返回信息，返回信息不只包括脚本的正式返回值，还包括了bings中的信息（而且主要还是后者）
      * */
-    // TODO 1、还没有写
+    // 如果条件成立，说明需要支持反调（组合的javaProcess方法不一样）
+    if(this.allowInverse) {
+      this.groovyExpression = "def javaProcess(def componentAndMethod) {com.cheshangma.platform.ruleEngine.core.executor.ScriptInverseRunner inverseRunner = com.cheshangma.platform.ruleEngine.core.executor.ScriptInverseRunner.getNewInstance();inverseRunner.inverse(componentAndMethod);};" + this.groovyExpression;
+    } else {
+      this.groovyExpression = ";def javaProcess(def componentAndMethod) {throw new com.cheshangma.platform.ruleEngine.core.exception.ScriptInverseRejectException(\"remote execute process not allow inverse!\");};" + this.groovyExpression;
+    }
     
     // 2、=============试图从本地缓存中找到脚本
     ScriptEngineManager manager = new ScriptEngineManager();
@@ -100,6 +111,10 @@ public class ScriptCaller implements Callable<ScriptCaller.Result> {
         binding.put(key, this.variables.get(key));
       }
     }
+    // 绑定上下文信息
+    ScriptThread scriptThread = (ScriptThread)Thread.currentThread();
+    ExecuteContext context = scriptThread.getExecuteContext();
+    binding.put("context", context);
     
     // 3、=============开始执行
     Result result = new Result();
@@ -117,6 +132,8 @@ public class ScriptCaller implements Callable<ScriptCaller.Result> {
     }
     
     // 4、============构造返回
+    // 上下文的信息不能输出
+    binding.remove("context");
     if(binding != null && !binding.isEmpty()) {
       result.score.putAll(binding);
     }
