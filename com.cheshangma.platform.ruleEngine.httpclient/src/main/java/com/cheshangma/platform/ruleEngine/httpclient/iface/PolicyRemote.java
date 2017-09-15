@@ -35,7 +35,7 @@ public interface PolicyRemote {
 	@Headers({"Content-Type: application/json" })
 	public ExecuteHttpResponse disable(@Param("policyId") String policyId) ;
 	
-	@RequestLine("POST /v2/policy/check/{policyId}")
+	@RequestLine("GET /v2/policy/check/{policyId}")
 	@Headers({"Content-Type: application/json" })
 	public ExecuteHttpResponse check(@Param("policyId") String policyId) ;
 	

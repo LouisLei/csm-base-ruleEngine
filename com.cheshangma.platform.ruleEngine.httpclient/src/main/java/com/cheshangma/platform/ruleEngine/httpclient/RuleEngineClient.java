@@ -13,8 +13,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cheshangma.platform.ruleEngine.core.executor.ScriptReversableAbstractFactory;
 import com.cheshangma.platform.ruleEngine.core.framework.RuleEngineFramework;
-import com.cheshangma.platform.ruleEngine.core.service.ServiceAbstractFactory;
 import com.cheshangma.platform.ruleEngine.core.utils.JSONMapper;
 import com.cheshangma.platform.ruleEngine.enums.ScriptLanguageType;
 import com.cheshangma.platform.ruleEngine.httpclient.iface.ExecuteRemote;
@@ -97,7 +97,7 @@ public class RuleEngineClient {
 			setScriptQueueSize(builder.getScriptQueueSize()).
 			setScriptThreadName(builder.getScriptThreadName()).
 			setWaitingTimeout(builder.getWaitingTimeout()).
-			setServiceAbstractFactory(builder.getServiceAbstractFactory());
+			setScriptReversableFactory(builder.getScriptReversableAbstractFactory());
 		this.ruleEngineFramework = fBuilder.buildIfAbent();
 	}
 	
@@ -740,7 +740,7 @@ public class RuleEngineClient {
      * 默认的是一个ScriptReversableDefaultFactory，但这个默认工厂并不支持从Spring IOC容器中获取bean<br>
      * 所以如果您需要在Spring IOC容器中取得对象，就必须自己构建工厂
      */
-    private ServiceAbstractFactory serviceAbstractFactory;
+    private ScriptReversableAbstractFactory scriptReversableAbstractFactory;
 
     /**
      * @param remoteURL the remoteURL to set
@@ -847,12 +847,13 @@ public class RuleEngineClient {
       return allowInverse;
     }
 
-    public ServiceAbstractFactory getServiceAbstractFactory() {
-      return serviceAbstractFactory;
+    public ScriptReversableAbstractFactory getScriptReversableAbstractFactory() {
+      return scriptReversableAbstractFactory;
     }
 
-    public void setServiceAbstractFactory(ServiceAbstractFactory serviceAbstractFactory) {
-      this.serviceAbstractFactory = serviceAbstractFactory;
+    public void setScriptReversableAbstractFactory(
+        ScriptReversableAbstractFactory scriptReversableAbstractFactory) {
+      this.scriptReversableAbstractFactory = scriptReversableAbstractFactory;
     }
 
     /**
