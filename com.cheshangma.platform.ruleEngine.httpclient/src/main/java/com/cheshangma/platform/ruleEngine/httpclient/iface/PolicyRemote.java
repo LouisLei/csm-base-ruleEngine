@@ -8,7 +8,7 @@ import feign.Param;
 import feign.RequestLine;
 
 /**
- * 该feign接口定义，不再加注释了。如果要查看具体的业务功能，请参见《Morpheus2用户手册》
+ * 该feign接口定义，不再加注释了。如果要查看具体的业务功能，请参见《RuleEngine用户手册》
  * @author yinwenjie
  */
 public interface PolicyRemote {

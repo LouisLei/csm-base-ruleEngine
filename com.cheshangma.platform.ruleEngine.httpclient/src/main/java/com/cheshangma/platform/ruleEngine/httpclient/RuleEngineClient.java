@@ -38,20 +38,20 @@ import feign.jackson.JacksonDecoder;
 import feign.jackson.JacksonEncoder;
 
 /**
- * Morpheus Client，由需要在本地集成Morpheus2规则引擎的各个业务系统使用。其中汇总了Morpheus2规则引擎能够提供给技术人员使用的所有功能<br>
- * Morpheus Client对于policy和rule信息维护以及远程执行的本质是通过feign去执行远程调用，所以如果要使用Morpheus Client，则需要通过类似以下方式进行Morpheus Client的初始化：<p>
+ * RuleEngine Client，由需要在本地集成RuleEngine规则引擎的各个业务系统使用。其中汇总了RuleEngine规则引擎能够提供给技术人员使用的所有功能<br>
+ * RuleEngine Client对于policy和rule信息维护以及远程执行的本质是通过feign去执行远程调用，所以如果要使用RuleEngine Client，则需要通过类似以下方式进行RuleEngine Client的初始化：<p>
  * 
- * MorpheusClient.Builder build = new MorpheusClient.Builder();<br>
- * morpheusClient = build.setRemoteURL("http://localhost:8080").build();
+ * RuleEngineClient.Builder build = new RuleEngineClient.Builder();<br>
+ * RuleEngineClient = build.setRemoteURL("http://localhost:8080").build();
  * 
  * @author yinwenjie
  */
 public class RuleEngineClient {
 	
 	/**
-	 * 系统中唯一一个MorpheusClient类的实例化对象
+	 * 系统中唯一一个RuleEngineClient类的实例化对象
 	 */
-	private static RuleEngineClient morpheusClient;
+	private static RuleEngineClient engineClient;
 	
 	/**
 	 * 日志
@@ -74,7 +74,7 @@ public class RuleEngineClient {
 	private ExecuteRemote executeRemote;
 	
 	/**
-	 * 在本地直接运行Morpheus脚本服务所需要的Morpheus服务框架
+	 * 在本地直接运行RuleEngine脚本服务所需要的RuleEngine服务框架
 	 */
 	private RuleEngineFramework ruleEngineFramework;
 	
@@ -89,7 +89,7 @@ public class RuleEngineClient {
 		this.policyRemote = feignBuilder.target(PolicyRemote.class, builder.getRemoteURL());
 		this.executeRemote = feignBuilder.target(ExecuteRemote.class, builder.getRemoteURL());
 		
-		// 继续初始化本地的Morpheus服务，以便它为反调功能服务
+		// 继续初始化本地的RuleEngine服务，以便它为反调功能服务
 		RuleEngineFramework.Builder fBuilder = RuleEngineFramework.Builder.getInstanceBuilder();
 		fBuilder.setAllowInverse(builder.getAllowInverse());
 		fBuilder.setMaxExecutionThread(builder.getMaxExecutionThread()).
@@ -102,24 +102,24 @@ public class RuleEngineClient {
 	}
 	
 	private static RuleEngineClient  getNewInstance (Builder builder) {
-		if(RuleEngineClient.morpheusClient != null) {
-			return RuleEngineClient.morpheusClient;
+		if(RuleEngineClient.engineClient != null) {
+			return RuleEngineClient.engineClient;
 		}
 		
 		// 避免并发情况下被多次初始化
 		synchronized (RuleEngineClient.class) {
-			while(RuleEngineClient.morpheusClient == null) {
-				RuleEngineClient.morpheusClient = new RuleEngineClient(builder);
+			while(RuleEngineClient.engineClient == null) {
+				RuleEngineClient.engineClient = new RuleEngineClient(builder);
 			}
 		}
-		return RuleEngineClient.morpheusClient;
+		return RuleEngineClient.engineClient;
 	}
 	
 	/**
 	 * 创建一个新的policy信息，如果这个policy的policyId已经存在于系统中，则会创建失败<br>
-	 * 创建policy所需要的数据格式请参见com.dianrong.morpheus.core.model.PolicyModel对象的属性描述<br>
+	 * 创建policy所需要的数据格式请参见com.dianrong.RuleEngine.core.model.PolicyModel对象的属性描述<br>
 	 * 创建policy的过程不但包括对policy的基本信息进行创建，还包括对policy可能同时创建的“元数据”信息同时进行创建<br>
-	 * 但是创建policy的功能并不包括对可能存在的rule关系进行同时绑定，如果要实现后者，请使用MorpheusClient中的bindRule方法<p>
+	 * 但是创建policy的功能并不包括对可能存在的rule关系进行同时绑定，如果要实现后者，请使用RuleEngineClient中的bindRule方法<p>
 	 * 创建一个policy时，其中只有policyId是必须填写的。
 	 * @see #bindRule(String, String)
 	 * @param policy 这是要进行新创建的policy信息
@@ -223,12 +223,12 @@ public class RuleEngineClient {
 	
 	/**
 	 * 创建一个新的rule信息，如果这个rule的ruleId已经存在于系统中，则会创建失败<br>
-	 * 创建rule所需要的数据格式请参见com.dianrong.morpheus.core.model.RuleModel对象的属性描述<br>
+	 * 创建rule所需要的数据格式请参见com.dianrong.RuleEngine.core.model.RuleModel对象的属性描述<br>
 	 * 创建过程只包括对Rule的基本信息进行创建，并不包括同时对Rule和Policy进行绑定<p>
 	 * 
 	 * 以下信息是必须填写的：<br>
 	 * ruleId、expression、scriptLanguage（有默认值）
-	 * @see com.dianrong.morpheus.core.model.RuleModel
+	 * @see com.dianrong.RuleEngine.core.model.RuleModel
 	 */
 	public RuleModel createRule(RuleModel rule)  {
 		this.checkRule(rule);
@@ -339,7 +339,7 @@ public class RuleEngineClient {
 	
 	/**
 	 * 该方法用于执行一个rule下设定的动态脚本信息，通过传入的inputs入参信息<br>
-	 * 这种方式您必须保证ruleId对应的规则信息，已经在Morpheus的数据持久层进行了保存，并且是能够在持久层被查询到的<p>
+	 * 这种方式您必须保证ruleId对应的规则信息，已经在RuleEngine的数据持久层进行了保存，并且是能够在持久层被查询到的<p>
 	 * 
 	 * 使用该方法请注意，由于向服务器的通讯依靠JSON结构完成，但是因为是执行动态脚本，所以并不知道返回的score属性携带那些类型
 	 * 所以这里返回最原始的JSON信息，由调用这自己根据实际情况完成转换<p>
@@ -654,7 +654,7 @@ public class RuleEngineClient {
 	}
 	
 	/**
-	 * 该方法将response中的返回信息按照类型要求构造成一个MorpheusModel业务模型信息
+	 * 该方法将response中的返回信息按照类型要求构造成一个RuleEngineModel业务模型信息
 	 * @param response
 	 * @param modelType
 	 * @return
@@ -671,7 +671,7 @@ public class RuleEngineClient {
   }
 	
 	/**
-	 * 该方法将response中的返回信息按照类型要求构造成一个MorpheusModel业务模型信息<br>
+	 * 该方法将response中的返回信息按照类型要求构造成一个RuleEngineModel业务模型信息<br>
 	 * 支持集合转换
 	 * @param response
 	 * @param modelType
@@ -690,7 +690,7 @@ public class RuleEngineClient {
   }
 	
 	/**
-	 * MorpheusClient采用创建者模式进行进程中唯一对象的创建
+	 * RuleEngineClient采用创建者模式进行进程中唯一对象的创建
 	 * @author yinwenjie
 	 */
   public static class Builder {
@@ -703,19 +703,19 @@ public class RuleEngineClient {
 
     /**
      * 等待超时时间，默认为500毫秒<br>
-     * 各种MorpheusFramework的实现中，都要求对远程存储/通知介质的写操作过程中保持同步<br>
+     * 各种RuleEngineFramework的实现中，都要求对远程存储/通知介质的写操作过程中保持同步<br>
      * 但是类似zookeeper这样的远程存储/通知介质又不能保证所有通知100%到达，所以需要设置一个等待超时时间<br>
      * 如果这个超时时间到了，就主动向远程存储/通知介质发起一次询问。
      */
     private long waitingTimeout = 500;
 
     /**
-     * 当前MorpheusFramework执行判断策略时所使用的线程池最大任务数量 默认为50
+     * 当前RuleEngineFramework执行判断策略时所使用的线程池最大任务数量 默认为50
      */
     private int maxExecutionThread = 50;
 
     /**
-     * 当前MorpheusFramework执行判断策略时所使用的线程池最小任务数量 默认为10
+     * 当前RuleEngineFramework执行判断策略时所使用的线程池最小任务数量 默认为10
      */
     private int minExecutionThread = 10;
 
@@ -730,8 +730,8 @@ public class RuleEngineClient {
     private int scriptQueueSize = 1000;
 
     /**
-     * 该方法指示当前运行的Morpheus2引擎是否支持“反调”<br>
-     * 默认为支持，因为要尽量减少Morpheus2规则引擎在本地运行时，开发人员对于Morpheus2的理解深度。
+     * 该方法指示当前运行的RuleEngine引擎是否支持“反调”<br>
+     * 默认为支持，因为要尽量减少RuleEngine规则引擎在本地运行时，开发人员对于RuleEngine的理解深度。
      */
     private boolean allowInverse = true;
 
