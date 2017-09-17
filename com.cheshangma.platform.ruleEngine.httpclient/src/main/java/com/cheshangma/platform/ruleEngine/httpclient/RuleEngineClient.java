@@ -540,7 +540,9 @@ public class RuleEngineClient {
 //		}
 //		
 //		return json;
-	  return null;
+	  String json;
+      json = JSONMapper.OBJECTMAPPER.convertObjectToJson(object);
+      return json;
 	}
 	
 	/**
