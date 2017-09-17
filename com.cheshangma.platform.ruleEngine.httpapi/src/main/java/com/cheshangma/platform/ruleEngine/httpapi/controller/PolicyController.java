@@ -57,7 +57,6 @@ public class PolicyController extends BasicController {
     Validate.notNull(policy, "策略信息不能为空！");
     try {
       policyService.save(policy);
-      result.setData(true);
       result.setStatus("200");
       result.setMessage("创建成功！");
     } catch (Exception e) {
@@ -65,6 +64,7 @@ public class PolicyController extends BasicController {
       result.setException(e.getMessage());
       result.setMessage("创建失败！");
     }
+    result.setData(policy);
     return result;
   }
 
@@ -92,7 +92,6 @@ public class PolicyController extends BasicController {
     Validate.notNull(policy, "策略信息不能为空！");
     try {
       policyService.update(policy);
-      result.setData(true);
       result.setStatus("200");
       result.setMessage("修改成功！");
     } catch (Exception e) {
@@ -100,6 +99,7 @@ public class PolicyController extends BasicController {
       result.setException(e.getMessage());
       result.setMessage("修改失败！");
     }
+    result.setData(policy);
     return result;
   }
 
@@ -168,7 +168,7 @@ public class PolicyController extends BasicController {
   @ApiOperation("该方法用于标记/修改指定的policy为“不可用”状态" + "如果操作成功，那么无论该policy之前的状态是否为“可用”，反正现在的状态为“不可用”了"
       + "一旦某个policy的状态为不可用，则该policy下的动态代码内容或者其下若干个rule的动态代码内容，都不会执行。" + "且在执行execute方法时，会抛出异常")
   @RequestMapping(value = "/disable/{policyId}", method = RequestMethod.POST)
-  public ExecuteHttpResponse disable(@PathVariable("policyId") String policyId) {
+  public ExecuteHttpResponse disable(@PathVariable String policyId) {
     ExecuteHttpResponse result = new ExecuteHttpResponse();
     Validate.notBlank(policyId, "策略的业务id不能为空！");
     try {
@@ -249,9 +249,13 @@ public class PolicyController extends BasicController {
     PolicyModel policyModel = policyService.findByPolicyId(policyId);
     if (policyModel == null) {
       result.setData(null);
+      result.setStatus("404");
+      result.setMessage("数据不存在！");
     } else {
       result.setData(policyModel);
+      result.setStatus("200");
     }
     return result;
   }
+  
 }

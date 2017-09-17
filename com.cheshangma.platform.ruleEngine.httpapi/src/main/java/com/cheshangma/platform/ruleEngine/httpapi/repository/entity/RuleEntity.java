@@ -9,7 +9,13 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
+
 import com.cheshangma.platform.ruleEngine.enums.ScriptLanguageType;
+import com.cheshangma.platform.ruleEngine.httpapi.repository.entity.enums.EnumType;
 
 /**
  * 规则信息，规则最典型的使用场景是：多个规则按照一定的顺序集中在一个policy中，被依次顺序执行
@@ -17,6 +23,8 @@ import com.cheshangma.platform.ruleEngine.enums.ScriptLanguageType;
  */
 @Entity
 @Table(name="R_RULE")
+@TypeDefs({@TypeDef(name = "scriptType", typeClass = EnumType.class, parameters = {@Parameter(name = "class", value = "com.cheshangma.platform.ruleEngine.enums.ScriptLanguageType")})
+})
 public class RuleEntity extends UUIDEntity {
   
   private static final long serialVersionUID = -7775615800020373308L;
@@ -33,6 +41,7 @@ public class RuleEntity extends UUIDEntity {
   /**
    * 脚本语言类型，目前支持Groovy、Python
    */
+  @Type(type = "scriptType")
   @Column(name="scriptLanguage" , nullable=false)
   private ScriptLanguageType scriptLanguage = ScriptLanguageType.LANGUAGE_GROOVY;
   

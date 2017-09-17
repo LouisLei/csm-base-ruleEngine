@@ -22,4 +22,12 @@ public interface VariablePropertyRepository extends CrudRepository<VariablePrope
   @Modifying
   @Query(value="delete from VariablePropertyEntity where policyId = :policyId" , nativeQuery=true)
   public void deleteByPolicyId(@Param("policyId") String policyId);
+  
+  /**
+   * 是否存在属于该policyId策略的元数据.
+   * @param policyId 策略id（非逻辑键id）
+   * @return int
+   */
+  @Query(value = "select count(*) from R_VARIABLEPROPERTY where policy_id=:policyId", nativeQuery = true)
+  public int getByPolicyId(@Param("policyId") String policyId);
 }
