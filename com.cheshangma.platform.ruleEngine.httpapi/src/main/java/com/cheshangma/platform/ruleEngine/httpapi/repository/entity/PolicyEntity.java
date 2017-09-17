@@ -9,9 +9,15 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
+
 import com.cheshangma.platform.ruleEngine.enums.ExecModeType;
 import com.cheshangma.platform.ruleEngine.enums.PolicyModeType;
 import com.cheshangma.platform.ruleEngine.enums.ScriptLanguageType;
+import com.cheshangma.platform.ruleEngine.httpapi.repository.entity.enums.EnumType;
 
 /**
  * 策略信息
@@ -19,6 +25,9 @@ import com.cheshangma.platform.ruleEngine.enums.ScriptLanguageType;
  */
 @Entity 
 @Table(name = "R_POLICY")
+@TypeDefs({@TypeDef(name = "scriptType", typeClass = EnumType.class, parameters = {@Parameter(name = "class", value = "com.cheshangma.platform.ruleEngine.enums.ScriptLanguageType")}),
+@TypeDef(name = "execModeType", typeClass = EnumType.class, parameters = {@Parameter(name = "class", value = "com.cheshangma.platform.ruleEngine.enums.ExecModeType")}),
+@TypeDef(name = "modeType", typeClass = EnumType.class, parameters = {@Parameter(name = "class", value = "com.cheshangma.platform.ruleEngine.enums.PolicyModeType")})})
 public class PolicyEntity extends UUIDEntity {
   private static final long serialVersionUID = -8286571212490063746L; 
   /**
@@ -51,17 +60,20 @@ public class PolicyEntity extends UUIDEntity {
    * 策略的运行模式<br>
    * 简单说，就是当遇到异常时，是否终止运行
    */
+  @Type(type = "execModeType")
   @Column(name = "execMode", nullable = false)
   private ExecModeType execMode = ExecModeType.SIMPLE;
   /**
    * 策略形态<br>
    * 是一个简单的策略呢，还是一个至少有一个rule的策略
    */
+  @Type(type = "modeType")
   @Column(name = "mode", nullable = false)
   private PolicyModeType mode = PolicyModeType.RULEMODE_SIMPLE;
   /**
    * 脚本类型，目前支持两种类型。Groovy和Python
    */
+  @Type(type = "scriptType")
   @Column(name = "scriptLanguage")
   private ScriptLanguageType scriptLanguage = ScriptLanguageType.LANGUAGE_GROOVY;
   /**
