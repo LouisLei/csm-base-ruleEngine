@@ -270,6 +270,15 @@ public class PolicyServiceImp implements PolicyService {
     if (policy == null) {
       return;
     }
+    // 存在元数据的情况
+    if (policy.getVariablePropertys() != null) {
+      int count = variablePropertyRepository.getByPolicyId(policy.getId());
+      // 由于有外键管理，需要先删除元数据，否则无法直接删除策略信息
+      if (count > 0) {
+        variablePropertyRepository.deleteByPolicyId(policy.getId());
+      }
+    }
+    // TODO 存在关联的rule信息，待处理
     this.policyRepository.delete(policy.getId());
   }
 
@@ -279,6 +288,7 @@ public class PolicyServiceImp implements PolicyService {
    * @see com.cheshangma.platform.ruleEngine.core.service.PolicyService#enable(java.lang.String)
    */
   @Override
+  @Transactional
   public boolean enable(String policyId) {
     Validate.notBlank(policyId, "policy id must not empty!!");
     this.policyRepository.enable(policyId);
@@ -291,6 +301,7 @@ public class PolicyServiceImp implements PolicyService {
    * @see com.cheshangma.platform.ruleEngine.core.service.PolicyService#disable(java.lang.String)
    */
   @Override
+  @Transactional
   public boolean disable(String policyId) {
     Validate.notBlank(policyId, "policy id must not empty!!");
     this.policyRepository.disable(policyId);
@@ -312,6 +323,7 @@ public class PolicyServiceImp implements PolicyService {
     policyModel.setDescription(policyEntity.getDescription());
     policyModel.setId(policyEntity.getId());
     policyModel.setMode(policyEntity.getMode());
+    policyModel.setExecMode(policyEntity.getExecMode());
     policyModel.setPolicyEnabled(policyEntity.getPolicyEnabled());
     policyModel.setPolicyId(policyEntity.getPolicyId());
     policyModel.setScoreExpression(policyEntity.getScoreExpression());
