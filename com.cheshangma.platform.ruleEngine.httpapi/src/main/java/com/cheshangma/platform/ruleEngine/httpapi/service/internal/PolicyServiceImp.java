@@ -18,13 +18,16 @@ import com.cheshangma.platform.ruleEngine.core.exception.PolicyAllreadyExistExce
 import com.cheshangma.platform.ruleEngine.core.exception.PolicyNotFoundException;
 import com.cheshangma.platform.ruleEngine.enums.ScriptLanguageType;
 import com.cheshangma.platform.ruleEngine.httpapi.repository.PolicyRepository;
+import com.cheshangma.platform.ruleEngine.httpapi.repository.PolicyStepRepository;
 import com.cheshangma.platform.ruleEngine.httpapi.repository.VariablePropertyRepository;
 import com.cheshangma.platform.ruleEngine.httpapi.repository.entity.PolicyEntity;
+import com.cheshangma.platform.ruleEngine.httpapi.repository.entity.PolicyStepEntity;
 import com.cheshangma.platform.ruleEngine.httpapi.repository.entity.VariablePropertyEntity;
 import com.cheshangma.platform.ruleEngine.httpapi.service.PolicyService;
 import com.cheshangma.platform.ruleEngine.module.MetadataModel;
 import com.cheshangma.platform.ruleEngine.module.MetadataModel.VariableProperty;
 import com.cheshangma.platform.ruleEngine.module.PolicyModel;
+import com.cheshangma.platform.ruleEngine.module.PolicyStepModel;
 
 /**
  * 策略service实现.
@@ -40,6 +43,8 @@ public class PolicyServiceImp implements PolicyService {
   private PolicyRepository policyRepository;
   @Autowired
   private VariablePropertyRepository variablePropertyRepository;
+  @Autowired
+  private PolicyStepRepository policyStepRepository;
 
   /*
    * (non-Javadoc)
@@ -317,6 +322,7 @@ public class PolicyServiceImp implements PolicyService {
    */
   private PolicyModel transferModel(PolicyEntity policyEntity) {
     PolicyModel policyModel = new PolicyModel();
+    policyModel.setId(policyEntity.getId());
     policyModel.setCreated(policyEntity.getCreated());
     // TODO 由于还没有人员信息，所以该字段暂时还没有使用
     policyModel.setCreator("");
@@ -339,7 +345,14 @@ public class PolicyServiceImp implements PolicyService {
       metadata.setParams(set);
       policyModel.setMetadata(metadata);
     }
-
+    // 关联的rule
+    if (policyEntity.getExecution() != null && policyEntity.getExecution().size() > 0) {
+      List<PolicyStepModel> stepModels = new ArrayList<PolicyStepModel>();
+      for (PolicyStepEntity step : policyEntity.getExecution()) {
+        stepModels.add(transterStepModel(step));
+      }
+      policyModel.setExecution(stepModels);
+    }
     return policyModel;
   }
 
@@ -354,5 +367,11 @@ public class PolicyServiceImp implements PolicyService {
     variable.setName(variablePropertyEntity.getName());
     variable.setDescription(variablePropertyEntity.getDescription());
     return variable;
+  }
+  
+  private PolicyStepModel transterStepModel(PolicyStepEntity stepEntity){
+    PolicyStepModel step = new PolicyStepModel();
+    step.setRuleId(stepEntity.getRuleId().getRuleId());
+    return step;
   }
 }

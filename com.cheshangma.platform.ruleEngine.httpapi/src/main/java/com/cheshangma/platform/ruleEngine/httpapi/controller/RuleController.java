@@ -56,13 +56,13 @@ public class RuleController extends BasicController {
     try {
       ruleService.save(rule);
       result.setStatus("200");
-      result.setData(true);
       result.setMessage("创建成功！");
     } catch (Exception e) {
       result.setStatus("500");
-      result.setMessage("创建失败！");
+      result.setMessage(e.getMessage());
       result.setMessage(e.getMessage());
     }
+    result.setData(rule);
     return result;
   }
 
@@ -94,7 +94,7 @@ public class RuleController extends BasicController {
       result.setMessage("修改成功！");
     } catch (Exception e) {
       result.setStatus("500");
-      result.setMessage("修改失败！");
+      result.setMessage(e.getMessage());
       result.setException(e.getMessage());
     }
     return result;
@@ -190,7 +190,7 @@ public class RuleController extends BasicController {
       result.setData(true);
       result.setStatus("200");
     } catch (Exception e) {
-      result.setMessage("删除失败！");
+      result.setMessage(e.getMessage());
       result.setStatus("500");
       result.setException(e.getMessage());
     }

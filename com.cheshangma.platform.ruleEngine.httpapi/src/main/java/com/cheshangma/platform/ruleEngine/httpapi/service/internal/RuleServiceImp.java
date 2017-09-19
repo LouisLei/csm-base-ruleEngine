@@ -56,7 +56,7 @@ public class RuleServiceImp implements RuleService {
      * */
     // 检查是否已存在重复的ruleId
     RuleEntity exsitRule = this.ruleRepository.findByRuleId(model.getRuleId());
-    if(exsitRule == null) { 
+    if(exsitRule != null) { 
         throw new RuleAllreadyExistException("Rule Allready Exist! ruleId = " + model.getRuleId());
     }
     
@@ -150,13 +150,13 @@ public class RuleServiceImp implements RuleService {
   @Transactional
   public boolean bindRule(String policyId, String ruleId, Long index) {
     // 找到数据持久层的policy数据的id和rule数据的id
-    PolicyEntity policy = this.policyRepository.findOne(policyId);
-    RuleEntity rule = this.ruleRepository.findOne(ruleId);
+    PolicyEntity policy = this.policyRepository.findByPolicyId(policyId);
     if(policy == null) {
         throw new PolicyNotFoundException("policyId = " + policyId + "is not exist !!");
     }
+    RuleEntity rule = this.ruleRepository.findByRuleId(ruleId);
     if(rule == null) {
-        throw new RuleNotFoundException("ruleId = " + ruleId + "is not exist !!");
+      throw new RuleNotFoundException("ruleId = " + ruleId + "is not exist !!");
     }
     PolicyStepEntity policyStep =  this.policyStepRepository.findByPolicyAndRule(policy.getId(), rule.getId());
     if(policyStep != null) {
