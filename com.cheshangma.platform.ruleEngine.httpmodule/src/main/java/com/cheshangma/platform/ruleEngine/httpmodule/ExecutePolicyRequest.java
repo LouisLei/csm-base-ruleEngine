@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.cheshangma.platform.ruleEngine.enums.PolicyModeType;
+import com.cheshangma.platform.ruleEngine.enums.ScriptLanguageType;
 import com.cheshangma.platform.ruleEngine.module.MetadataModel;
 import com.cheshangma.platform.ruleEngine.module.PolicyStepModel;
 
@@ -81,4 +82,36 @@ public class ExecutePolicyRequest {
 	public void setExecution(List<PolicyStepModel> execution) {
 		this.execution = execution;
 	}
+	/**
+     * 脚本语言内容
+     */
+    private String expression;
+    /**
+     * 脚本语言类型，目前支持groovy、python和javaScript
+     */
+    private ScriptLanguageType scriptLanguage;
+    /**
+     * @return the expression
+     */
+    public String getExpression() {
+        return expression;
+    }
+    /**
+     * @param expression the expression to set
+     */
+    public void setExpression(String expression) {
+        this.expression = expression;
+    }
+    /**
+     * @return the scriptLanguage
+     */
+    public ScriptLanguageType getScriptLanguage() {
+        return scriptLanguage;
+    }
+    /**
+     * @param scriptLanguage the scriptLanguage to set
+     */
+    public void setScriptLanguage(ScriptLanguageType scriptLanguage) {
+        this.scriptLanguage = scriptLanguage;
+    }
 }

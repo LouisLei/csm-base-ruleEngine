@@ -21,6 +21,7 @@ import com.cheshangma.platform.ruleEngine.httpclient.iface.ExecuteRemote;
 import com.cheshangma.platform.ruleEngine.httpclient.iface.PolicyRemote;
 import com.cheshangma.platform.ruleEngine.httpclient.iface.RuleRemote;
 import com.cheshangma.platform.ruleEngine.httpmodule.ExecuteHttpResponse;
+import com.cheshangma.platform.ruleEngine.httpmodule.ExecutePolicyRequest;
 import com.cheshangma.platform.ruleEngine.httpmodule.ExecuteScriptRequest;
 import com.cheshangma.platform.ruleEngine.module.ExecutionPolicyModel;
 import com.cheshangma.platform.ruleEngine.module.ExecutionRuleModel;
@@ -502,6 +503,61 @@ public class RuleEngineClient {
 		
 		return result;
 	}
+	
+	/**
+     * 该方法用于执行正在编辑的policy，该方法用于还未持久化policy对象之前.
+     * 并且在allowInverse属性设置为true的前提下，支持groovy脚本对java的反调
+     * 
+     * 返回的JSON信息中包括的字段意义，可参见wiki文档或原始的用户手册
+     */
+    public ExecutionPolicyModel executePolicyTry(ExecutePolicyRequest executionPolicy) {
+      if(executionPolicy == null) {
+        throw new IllegalArgumentException("policy must be input !!");
+    }
+        ExecutionPolicyModel result;
+        /*
+         * 执行情况：
+         * 1.封装为一个policyModel对象
+         * 2.不存在绑定的rule，则执行本身的脚本
+         * 3.存在绑定的rule，依次执行rule下的脚本
+         */
+        PolicyModel policy = new PolicyModel();
+        policy.setExecution(executionPolicy.getExecution());
+        policy.setScoreExpression(executionPolicy.getExpression());
+        policy.setScriptLanguage(executionPolicy.getScriptLanguage());
+        policy.setMetadata(executionPolicy.getMetadata());
+        policy.setMode(executionPolicy.getMode());
+        
+        Map<String, Object> inputs = executionPolicy.getInputs();
+        List<PolicyStepModel> policySteps = policy.getExecution();
+        if(policySteps == null || policySteps.isEmpty()) {
+            result = this.ruleEngineFramework.executePolicy(policy, null, inputs);
+        }else {
+          // 根据ruleids查询所有的rule信息
+          List<String> ruleids = policySteps.stream().map(PolicyStepModel::getRuleId).collect(Collectors.toList());
+          //TODO 查询出绑定的rule，依次执行
+          ExecuteHttpResponse response = null;//this.ruleRemote.retrieveRuleStep(policyid);
+          List<RuleModel> rules = this.responseTransfers(response, RuleModel.class);
+          /*
+          * 注意由于数据库中使用in关键字进行查询，所以查询出来的结果顺序和policySteps要求的结果顺序可能不一致。
+          * 而且policySteps中可能连续标注了同一个rule需要执行多次，在ruleModelIters中同一个rule却只记录了一次。
+          * 所以这里需要根据policySteps和ruleModelIters两个集合的情况，进行重排，新的集合记为ruleSteps
+          * */
+         List<RuleModel> ruleSteps = new LinkedList<>();
+         ruleids.forEach(r -> {
+             for(int index = 0 ; index < rules.size() ; index++) {
+                 RuleModel targerule = rules.get(index);
+                 if(StringUtils.equals(targerule.getId(), r)) {
+                     ruleSteps.add(targerule);
+                     break;
+                 }
+             }
+         });
+          result = this.ruleEngineFramework.executePolicy(policy, ruleSteps, inputs);
+        }
+        
+        return result;
+    }
 	
 	/**
 	 * 该方法直接执行动态脚本。主要用于对以编写的脚本进行测试，确定脚本内容本身是可以正常工作的<p>
