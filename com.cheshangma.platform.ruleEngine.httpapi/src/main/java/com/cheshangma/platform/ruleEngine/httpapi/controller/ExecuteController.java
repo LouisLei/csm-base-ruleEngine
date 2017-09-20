@@ -20,8 +20,8 @@ import com.cheshangma.platform.ruleEngine.httpmodule.ExecuteHttpResponse;
 import com.cheshangma.platform.ruleEngine.httpmodule.ExecutePolicyRequest;
 import com.cheshangma.platform.ruleEngine.httpmodule.ExecuteScriptRequest;
 import com.cheshangma.platform.ruleEngine.module.ExecutionPolicyModel;
+import com.cheshangma.platform.ruleEngine.module.ExecutionRuleModel;
 import com.cheshangma.platform.ruleEngine.module.PolicyModel;
-import com.cheshangma.platform.ruleEngine.module.PolicyStepModel;
 import com.cheshangma.platform.ruleEngine.module.RuleModel;
 
 /**
@@ -72,29 +72,25 @@ public class ExecuteController extends BasicController{
 	@RequestMapping(value = "/try", method = RequestMethod.POST)
 	public ExecuteHttpResponse executeScript(@RequestBody ExecuteScriptRequest ruleRequest) {
 	  ExecuteHttpResponse result = new ExecuteHttpResponse();
-	  // 正在编辑的policy对象
-	  PolicyModel policy = new PolicyModel();
-	  // 正在编辑的rule对象
+	  // 1.1 正在编辑的rule对象
 	  RuleModel rule = new RuleModel();
 	  String expression = ruleRequest.getExpression();
 	  ScriptLanguageType scriptLanguage = ruleRequest.getScriptLanguage();
-	// 1.构造策略policy对象
-	  policy.setScoreExpression(expression);
-	  policy.setScriptLanguage(scriptLanguage);
-	  // 2.构造规则rule对象，此处暂时不会使用，先测试策略的simple形态的脚本
+	  // 1.2 构造规则rule对象，此处暂时不会使用，先测试策略的simple形态的脚本
 	  rule.setExpression(expression);
 	  rule.setScriptLanguage(scriptLanguage);
-	  // 1.1.构造规则对象，此处测试的正在编辑的策略未绑定任何rule对象
-	  List<RuleModel> rules = null;
 	  Map<String, Object> inputs = ruleRequest.getInputs();
 	  try {
-	    ExecutionPolicyModel policyModel = ruleEngineFramework.executePolicy(policy, rules, inputs);
+	    ExecutionRuleModel model = ruleEngineFramework.executeRule(rule, inputs);
 	    result.setStatus("200");
-	    result.setData(policyModel);
-      } catch (Exception e) {
+	    result.setData(model);
         result.setStatus("500");
         result.setMessage("脚本测试出错！");
-      }
+    } catch (Exception e) {
+      result.setStatus("500");
+      result.setMessage(e.getMessage());
+      result.setException(e.getMessage());
+    }
 		return result;
 	}
 	
@@ -115,7 +111,15 @@ public class ExecuteController extends BasicController{
       // List<PolicyStepModel> policySteps = policy.getExecution();
       // TODO 规则从哪里获取
       List<RuleModel> rules = null;
-      ruleEngineFramework.executePolicy(policy, rules, inputs);
+      try {
+        ExecutionPolicyModel model = ruleEngineFramework.executePolicy(policy, rules, inputs);
+        result.setStatus("200");
+        result.setData(model);
+      } catch (Exception e) {
+        result.setStatus("500");
+        result.setMessage(e.getMessage());
+        result.setException(e.getMessage());
+      }
 	  return result;
 	}
 	

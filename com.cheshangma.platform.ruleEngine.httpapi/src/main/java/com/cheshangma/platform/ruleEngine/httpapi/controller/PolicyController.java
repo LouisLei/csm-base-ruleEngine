@@ -55,8 +55,9 @@ public class PolicyController extends BasicController {
   public ExecuteHttpResponse createPolicy(@RequestBody PolicyModel policy) {
     ExecuteHttpResponse result = new ExecuteHttpResponse();
     Validate.notNull(policy, "策略信息不能为空！");
+    PolicyModel policyModel = null;
     try {
-      policyService.save(policy);
+      policyModel = policyService.save(policy);
       result.setStatus("200");
       result.setMessage("创建成功！");
     } catch (Exception e) {
@@ -64,7 +65,7 @@ public class PolicyController extends BasicController {
       result.setException(e.getMessage());
       result.setMessage("创建失败！");
     }
-    result.setData(policy);
+    result.setData(policyModel);
     return result;
   }
 

@@ -22,7 +22,7 @@ public class VariablePropertyEntity extends UUIDEntity {
    * 执行步骤所属的policy的编号信息
    */
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "policyId", unique = true, nullable = false)
+  @JoinColumn(name = "policyId", nullable = false)
   private PolicyEntity policyId;
   /**
    * 元数据属性名

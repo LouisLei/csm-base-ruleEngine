@@ -18,13 +18,16 @@ import com.cheshangma.platform.ruleEngine.core.exception.PolicyAllreadyExistExce
 import com.cheshangma.platform.ruleEngine.core.exception.PolicyNotFoundException;
 import com.cheshangma.platform.ruleEngine.enums.ScriptLanguageType;
 import com.cheshangma.platform.ruleEngine.httpapi.repository.PolicyRepository;
+import com.cheshangma.platform.ruleEngine.httpapi.repository.PolicyStepRepository;
 import com.cheshangma.platform.ruleEngine.httpapi.repository.VariablePropertyRepository;
 import com.cheshangma.platform.ruleEngine.httpapi.repository.entity.PolicyEntity;
+import com.cheshangma.platform.ruleEngine.httpapi.repository.entity.PolicyStepEntity;
 import com.cheshangma.platform.ruleEngine.httpapi.repository.entity.VariablePropertyEntity;
 import com.cheshangma.platform.ruleEngine.httpapi.service.PolicyService;
 import com.cheshangma.platform.ruleEngine.module.MetadataModel;
 import com.cheshangma.platform.ruleEngine.module.MetadataModel.VariableProperty;
 import com.cheshangma.platform.ruleEngine.module.PolicyModel;
+import com.cheshangma.platform.ruleEngine.module.PolicyStepModel;
 
 /**
  * 策略service实现.
@@ -40,6 +43,8 @@ public class PolicyServiceImp implements PolicyService {
   private PolicyRepository policyRepository;
   @Autowired
   private VariablePropertyRepository variablePropertyRepository;
+  @Autowired
+  private PolicyStepRepository policyStepRepository;
 
   /*
    * (non-Javadoc)
@@ -270,6 +275,15 @@ public class PolicyServiceImp implements PolicyService {
     if (policy == null) {
       return;
     }
+    // 存在元数据的情况
+    if (policy.getVariablePropertys() != null) {
+      int count = variablePropertyRepository.getByPolicyId(policy.getId());
+      // 由于有外键管理，需要先删除元数据，否则无法直接删除策略信息
+      if (count > 0) {
+        variablePropertyRepository.deleteByPolicyId(policy.getId());
+      }
+    }
+    // TODO 存在关联的rule信息，待处理
     this.policyRepository.delete(policy.getId());
   }
 
@@ -279,6 +293,7 @@ public class PolicyServiceImp implements PolicyService {
    * @see com.cheshangma.platform.ruleEngine.core.service.PolicyService#enable(java.lang.String)
    */
   @Override
+  @Transactional
   public boolean enable(String policyId) {
     Validate.notBlank(policyId, "policy id must not empty!!");
     this.policyRepository.enable(policyId);
@@ -291,6 +306,7 @@ public class PolicyServiceImp implements PolicyService {
    * @see com.cheshangma.platform.ruleEngine.core.service.PolicyService#disable(java.lang.String)
    */
   @Override
+  @Transactional
   public boolean disable(String policyId) {
     Validate.notBlank(policyId, "policy id must not empty!!");
     this.policyRepository.disable(policyId);
@@ -306,12 +322,14 @@ public class PolicyServiceImp implements PolicyService {
    */
   private PolicyModel transferModel(PolicyEntity policyEntity) {
     PolicyModel policyModel = new PolicyModel();
+    policyModel.setId(policyEntity.getId());
     policyModel.setCreated(policyEntity.getCreated());
     // TODO 由于还没有人员信息，所以该字段暂时还没有使用
     policyModel.setCreator("");
     policyModel.setDescription(policyEntity.getDescription());
     policyModel.setId(policyEntity.getId());
     policyModel.setMode(policyEntity.getMode());
+    policyModel.setExecMode(policyEntity.getExecMode());
     policyModel.setPolicyEnabled(policyEntity.getPolicyEnabled());
     policyModel.setPolicyId(policyEntity.getPolicyId());
     policyModel.setScoreExpression(policyEntity.getScoreExpression());
@@ -327,7 +345,14 @@ public class PolicyServiceImp implements PolicyService {
       metadata.setParams(set);
       policyModel.setMetadata(metadata);
     }
-
+    // 关联的rule
+    if (policyEntity.getExecution() != null && policyEntity.getExecution().size() > 0) {
+      List<PolicyStepModel> stepModels = new ArrayList<PolicyStepModel>();
+      for (PolicyStepEntity step : policyEntity.getExecution()) {
+        stepModels.add(transterStepModel(step));
+      }
+      policyModel.setExecution(stepModels);
+    }
     return policyModel;
   }
 
@@ -342,5 +367,11 @@ public class PolicyServiceImp implements PolicyService {
     variable.setName(variablePropertyEntity.getName());
     variable.setDescription(variablePropertyEntity.getDescription());
     return variable;
+  }
+  
+  private PolicyStepModel transterStepModel(PolicyStepEntity stepEntity){
+    PolicyStepModel step = new PolicyStepModel();
+    step.setRuleId(stepEntity.getRuleId().getRuleId());
+    return step;
   }
 }

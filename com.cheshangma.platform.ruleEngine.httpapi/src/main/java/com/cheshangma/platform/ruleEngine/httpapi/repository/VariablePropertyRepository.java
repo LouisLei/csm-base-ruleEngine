@@ -20,7 +20,7 @@ public interface VariablePropertyRepository extends CrudRepository<VariablePrope
    * @param policyId 
    */
   @Modifying
-  @Query(value="delete from VariablePropertyEntity where policyId = :policyId" , nativeQuery=true)
+  @Query(value="delete from R_VARIABLEPROPERTY where policy_id = :policyId" , nativeQuery=true)
   public void deleteByPolicyId(@Param("policyId") String policyId);
   
   /**
