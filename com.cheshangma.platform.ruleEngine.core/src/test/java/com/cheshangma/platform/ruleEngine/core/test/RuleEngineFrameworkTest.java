@@ -1,8 +1,10 @@
 package com.cheshangma.platform.ruleEngine.core.test;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -121,6 +123,8 @@ public class RuleEngineFrameworkTest {
     Map<String, Object> inputs = new HashMap<>();
     inputs.put("a", 2);
     inputs.put("b", 3);
+    // 测试是否报错
+    inputs.put("d", 3);
     User user = new User();
     user.setId(8888l);
     user.setName("yinwenjie");
@@ -216,6 +220,55 @@ public class RuleEngineFrameworkTest {
     ExecutionPolicyModel results = this.ruleEngineFramework.executePolicy(policy, null, inputs);
     
     // 检视返回信息
+    String json = JSONMapper.OBJECTMAPPER.convertObjectToJson(results);
+    System.out.println("json = " + json);
+  }
+  
+  /**
+   * 执行一个策略下的多个rule信息
+   */
+  @Test
+  public void executeMultipleRule() {
+    PolicyModel policy = new PolicyModel();
+    policy.setCreator("yinwenjie");
+    policy.setDescription("描述信息");
+    policy.setId(UUID.randomUUID().toString());
+    policy.setScriptLanguage(ScriptLanguageType.LANGUAGE_GROOVY);
+    policy.setExecMode(ExecModeType.PASSBY);
+    policy.setMode(PolicyModeType.RULEMODE_CASE);
+    
+    List<RuleModel> rules = new ArrayList<>();
+    // 第一个rule
+    RuleModel rule = new RuleModel();
+    rule.setCreator("yinwenjie");
+    rule.setDescription("描述信息");
+    rule.setExpression("c = a * b; a++;b++;");
+    rule.setRuleId(UUID.randomUUID().toString());
+    rule.setScriptLanguage(ScriptLanguageType.LANGUAGE_GROOVY);
+    rules.add(rule);
+   
+    // 第二个rule
+    rule = new RuleModel();
+    rule.setCreator("yinwenjie");
+    rule.setDescription("描述信息");
+    rule.setExpression("c = a * b; a++;b++;d++; user.name = '新的名字';user.id=999999;");
+    rule.setRuleId(UUID.randomUUID().toString());
+    rule.setScriptLanguage(ScriptLanguageType.LANGUAGE_GROOVY);
+    rules.add(rule);
+    
+    // 设定入参
+    Map<String, Object> inputs = new HashMap<>();
+    inputs.put("a", 2);
+    inputs.put("b", 3);
+    inputs.put("d", 11);
+    User user = new User();
+    user.setId(8888l);
+    user.setName("yinwenjie");
+    user.setSex(0);
+    inputs.put("user", user);
+    
+    // 执行
+    ExecutionPolicyModel results = this.ruleEngineFramework.executePolicy(policy, rules, inputs);
     String json = JSONMapper.OBJECTMAPPER.convertObjectToJson(results);
     System.out.println("json = " + json);
   }
